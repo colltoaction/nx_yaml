@@ -1,20 +1,27 @@
 # nx_yaml
 
-This library brings a new approach to use NetworkX graphs with YAML.
+A library for loading a YAML [Representation Graph] into NetworkX.
 
-## YAML Representation Graph
+## Development
 
-The [Representation Graph] is a 
+This is a work in progress POC.
 
-Previous to NetworkX v3 the `read_yaml` and `write_yaml` were included.
-These were tied to the native python data structures and default serialization.
-Instead of using `yaml.load` we will focus con `yaml.compose`, which exposes the underlying document graph.
+The development environment is self-contained using the `pipenv` tool.
 
-This new approach allows us to manipulate YAML documents using NetworkX.
-The representation graph is in one-to-one correspondence with a NetworkX graph,
-so we can use this language to specify graphs in human-friendly fashion.
+## Design
 
-This library also bridges the gap for `NetworkX<v3`.
+### YAML Representation Graph
 
+The Representation Graph is a well-defined subsection of the YAML specification.
+This library reads YAML and instantiates this graph using NetworkX.
+
+The YAML document is in one-to-one correspondence with this NetworkX graph.
+This means we can go back and forth freely between the two.
+
+We expect humans to find this language friendly!
+
+> **Note on NetworkX versions < 3**
+> The `read_yaml` and `write_yaml` functions worked completely different from this implementation.
+> and are not related in any way to this project.
 
 [Representation Graph]: https://yaml.org/spec/1.2-old/spec.html#id2763754
