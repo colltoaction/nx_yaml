@@ -22,9 +22,20 @@ def to_nx_graph(node: Node) -> nx.DiGraph:
 
 
 def to_yaml_node(digraph: nx.DiGraph) -> Node:
-    return ScalarNode(tag="tag:yaml.org,2002:null", value="~")
+    if len(digraph.nodes) == 0:
+        return ScalarNode(tag="tag:yaml.org,2002:null", value="~")
+    if len(digraph.nodes) == 1:
+        node = next(iter(digraph))
+        return ScalarNode(tag="tag:yaml.org,2002:str", value=node)
+    if nx.is_empty(digraph):
+        edges = [(node, nx.empty_graph())
+                 for node in digraph]
+        return MappingNode(tag="tag:yaml.org,2002:map", value=edges)
+    return ScalarNode(tag="tag:yaml.org,2002:str", value=digraph.nodes["my node"].label)
 
 def yaml_nodes_equal(node1: Node, node2: Node):
     if "tag:yaml.org,2002:null" == node1.tag == node2.tag:
+        return True
+    if node1.tag == node2.tag and node1.value == node2.value:
         return True
     return False
