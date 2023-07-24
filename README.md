@@ -5,8 +5,14 @@ A library for loading a YAML [Representation Graph] into NetworkX.
 ## Development
 
 This is a work in progress POC.
+`pypi` is updated on demand.
 
 The development environment is self-contained using the `pipenv` tool.
+
+## Testing
+
+* Create YAML and GML files in `resources/tests`.
+* Write graph tests using `pytest`.
 
 ## Design
 
