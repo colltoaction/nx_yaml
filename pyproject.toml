@@ -4,4 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nx_yaml"
-version = "0.0.1"
+version = "0.0.2"
+description = "A library for loading a YAML Representation Graph into NetworkX"
+
+[project.urls]
+"Source" = "https://github.com/colltoaction/nx_yaml"
