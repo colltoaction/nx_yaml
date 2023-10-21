@@ -1,10 +1,10 @@
 # nx_yaml
 
-A library for loading a YAML [Representation Graph] into NetworkX.
+Fast, native NetworkX support for PyYAML.
 
 ## Development
 
-This is a work in progress POC.
+This is work in progress.
 `pypi` is updated on demand.
 
 The development environment is self-contained using the `pipenv` tool.
@@ -16,18 +16,21 @@ The development environment is self-contained using the `pipenv` tool.
 
 ## Design
 
-### YAML Representation Graph
+With this library we offer four implementations that jointly bypass the `nodes` library and use NetworkX.
 
-The Representation Graph is a well-defined subsection of the YAML specification.
-This library reads YAML and instantiates this graph using NetworkX.
+* `NxComposer`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/composer.py
+* `NxConstructor`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/constructor.py
+* `NxRepresenter`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/representer.py
+* `NxSerializer`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/serializer.py
 
-The YAML document is in one-to-one correspondence with this NetworkX graph.
-This means we can go back and forth freely between the two.
+With these four classes and `CEmitter` and `CParser` from [LibYAML](https://pyyaml.org/wiki/LibYAML) we use all fast, native library bindings.
 
-We expect humans to find this language friendly!
+# NetworkX syntax
 
 > **Note on NetworkX versions < 3**
 > The `read_yaml` and `write_yaml` functions worked completely different from this implementation.
 > and are not related in any way to this project.
+
+With this approach NetworkX becomes the native PyYAML representation graph.
 
 [Representation Graph]: https://yaml.org/spec/1.2-old/spec.html#id2763754
