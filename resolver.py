@@ -1,15 +1,12 @@
 
-__all__ = ['BaseResolver', 'NxResolver']
+__all__ = ['NxResolver']
 
-from yaml.error import *
-from .nodes import *
+from yaml.resolver import ResolverError
+from yaml.nodes import ScalarNode, SequenceNode, MappingNode
 
 import re
 
-class ResolverError(YAMLError):
-    pass
-
-class BaseResolver:
+class NxResolver:
 
     DEFAULT_SCALAR_TAG = 'tag:yaml.org,2002:str'
     DEFAULT_SEQUENCE_TAG = 'tag:yaml.org,2002:seq'
@@ -36,11 +33,12 @@ class BaseResolver:
 
     @classmethod
     def add_path_resolver(cls, tag, path, kind=None):
+        assert print(tag, path, kind)
         # Note: `add_path_resolver` is experimental.  The API could be changed.
         # `new_path` is a pattern that is matched against the path from the
         # root to the node that is being considered.  `node_path` elements are
         # tuples `(node_check, index_check)`.  `node_check` is a node class:
-        # `ScalarNode`, `SequenceNode`, `MappingNode` or `None`.  `None`
+        # `"ScalarNode"`, `"SequenceNode"`, `"MappingNode"` or `None`.  `None`
         # matches any kind of a node.  `index_check` could be `None`, a boolean
         # value, a string value, or a number.  `None` and `False` match against
         # any _value_ of sequence and mapping nodes.  `True` matches against
@@ -64,12 +62,12 @@ class BaseResolver:
                 node_check = None
                 index_check = element
             if node_check is str:
-                node_check = ScalarNode
+                node_check = "ScalarNode"
             elif node_check is list:
-                node_check = SequenceNode
+                node_check = "SequenceNode"
             elif node_check is dict:
-                node_check = MappingNode
-            elif node_check not in [ScalarNode, SequenceNode, MappingNode]  \
+                node_check = "MappingNode"
+            elif node_check not in ["ScalarNode", "SequenceNode", "MappingNode"]  \
                     and not isinstance(node_check, str) \
                     and node_check is not None:
                 raise ResolverError("Invalid node checker: %s" % node_check)
@@ -78,12 +76,12 @@ class BaseResolver:
                 raise ResolverError("Invalid index checker: %s" % index_check)
             new_path.append((node_check, index_check))
         if kind is str:
-            kind = ScalarNode
+            kind = "scalar"
         elif kind is list:
-            kind = SequenceNode
+            kind = "sequence"
         elif kind is dict:
-            kind = MappingNode
-        elif kind not in [ScalarNode, SequenceNode, MappingNode]    \
+            kind = "mapping"
+        elif kind not in ["scalar", "sequence", "mapping"]    \
                 and kind is not None:
             raise ResolverError("Invalid node kind: %s" % kind)
         cls.yaml_path_resolvers[tuple(new_path), kind] = tag
@@ -132,8 +130,7 @@ class BaseResolver:
                 and current_index is None:
             return
         if isinstance(index_check, str):
-            if not (isinstance(current_index, ScalarNode)
-                    and index_check == current_index.value):
+            if current_index.kind != "scalar" and index_check == current_index.value:
                 return
         elif isinstance(index_check, int) and not isinstance(index_check, bool):
             if index_check != current_index:
@@ -141,6 +138,7 @@ class BaseResolver:
         return True
 
     def resolve(self, kind, value, implicit):
+        # TODO there shouldn't be any yaml nodes
         if kind is ScalarNode and implicit[0]:
             if value == '':
                 resolvers = self.yaml_implicit_resolvers.get('', [])
@@ -163,65 +161,3 @@ class BaseResolver:
             return self.DEFAULT_SEQUENCE_TAG
         elif kind is MappingNode:
             return self.DEFAULT_MAPPING_TAG
-
-class NxResolver(BaseResolver):
-    pass
-
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:bool',
-        re.compile(r'''^(?:yes|Yes|YES|no|No|NO
-                    |true|True|TRUE|false|False|FALSE
-                    |on|On|ON|off|Off|OFF)$''', re.X),
-        list('yYnNtTfFoO'))
-
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:float',
-        re.compile(r'''^(?:[-+]?(?:[0-9][0-9_]*)\.[0-9_]*(?:[eE][-+][0-9]+)?
-                    |\.[0-9][0-9_]*(?:[eE][-+][0-9]+)?
-                    |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\.[0-9_]*
-                    |[-+]?\.(?:inf|Inf|INF)
-                    |\.(?:nan|NaN|NAN))$''', re.X),
-        list('-+0123456789.'))
-
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:int',
-        re.compile(r'''^(?:[-+]?0b[0-1_]+
-                    |[-+]?0[0-7_]+
-                    |[-+]?(?:0|[1-9][0-9_]*)
-                    |[-+]?0x[0-9a-fA-F_]+
-                    |[-+]?[1-9][0-9_]*(?::[0-5]?[0-9])+)$''', re.X),
-        list('-+0123456789'))
-
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:merge',
-        re.compile(r'^(?:<<)$'),
-        ['<'])
-
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:null',
-        re.compile(r'''^(?: ~
-                    |null|Null|NULL
-                    | )$''', re.X),
-        ['~', 'n', 'N', ''])
-
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:timestamp',
-        re.compile(r'''^(?:[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]
-                    |[0-9][0-9][0-9][0-9] -[0-9][0-9]? -[0-9][0-9]?
-                     (?:[Tt]|[ \t]+)[0-9][0-9]?
-                     :[0-9][0-9] :[0-9][0-9] (?:\.[0-9]*)?
-                     (?:[ \t]*(?:Z|[-+][0-9][0-9]?(?::[0-9][0-9])?))?)$''', re.X),
-        list('0123456789'))
-
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:value',
-        re.compile(r'^(?:=)$'),
-        ['='])
-
-# The following resolver is only for documentation purposes. It cannot work
-# because plain scalars cannot start with '!', '&', or '*'.
-NxResolver.add_implicit_resolver(
-        'tag:yaml.org,2002:yaml',
-        re.compile(r'^(?:!|&|\*)$'),
-        list('!&*'))
-
