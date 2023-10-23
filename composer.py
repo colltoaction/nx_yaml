@@ -28,15 +28,16 @@ class NxComposer:
         self.get_event()
 
         # Compose a document if the stream is not empty.
-        document = None
+        document = nx.DiGraph()
         if not self.check_event(StreamEndEvent):
             document = self.compose_document()
 
         # Ensure that the stream contains no more documents.
         if not self.check_event(StreamEndEvent):
             event = self.get_event()
+            document_start_mark = freeze_mark(document.graph["start_mark"]) if "start_mark" in document.graph else None
             raise ComposerError("expected a single document in the stream",
-                    freeze_mark(document.start_mark), "but found another document",
+                    document_start_mark, "but found another document",
                     freeze_mark(event.start_mark))
 
         # Drop the STREAM-END event.
@@ -49,7 +50,7 @@ class NxComposer:
         self.get_event()
 
         # Compose the root node.
-        node = self.compose_node(None, None)
+        node = nx.DiGraph()
 
         # Drop the DOCUMENT-END event.
         self.get_event()

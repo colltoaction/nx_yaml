@@ -5,8 +5,6 @@ import networkx as nx
 
 class NxSafeRepresenter:
 
-    yaml_representers = {}
-    yaml_multi_representers = {}
 
     def __init__(self, default_style=None, default_flow_style=False, sort_keys=True):
         self.default_style = default_style
@@ -24,10 +22,7 @@ class NxSafeRepresenter:
         self.alias_key = None
 
     def represent_data(self, data):
-        if self.ignore_aliases(data):
-            self.alias_key = None
-        else:
-            self.alias_key = id(data)
+        self.alias_key = id(data)
         if self.alias_key is not None:
             if self.alias_key in self.represented_objects:
                 node = self.represented_objects[self.alias_key]
@@ -36,37 +31,10 @@ class NxSafeRepresenter:
                 return node
             #self.represented_objects[alias_key] = None
             self.object_keeper.append(data)
-        data_types = type(data).__mro__
-        if data_types[0] in self.yaml_representers:
-            node = self.yaml_representers[data_types[0]](self, data)
-        else:
-            for data_type in data_types:
-                if data_type in self.yaml_multi_representers:
-                    node = self.yaml_multi_representers[data_type](self, data)
-                    break
-            else:
-                if None in self.yaml_multi_representers:
-                    node = self.yaml_multi_representers[None](self, data)
-                elif None in self.yaml_representers:
-                    node = self.yaml_representers[None](self, data)
-                else:
-                    node = nx.DiGraph(kind='scalar')
-                    node.add_node(str(data))
+        node = nx.DiGraph(kind='scalar', value=str(data))
         #if alias_key is not None:
         #    self.represented_objects[alias_key] = node
         return node
-
-    @classmethod
-    def add_representer(cls, data_type, representer):
-        if not 'yaml_representers' in cls.__dict__:
-            cls.yaml_representers = cls.yaml_representers.copy()
-        cls.yaml_representers[data_type] = representer
-
-    @classmethod
-    def add_multi_representer(cls, data_type, representer):
-        if not 'yaml_multi_representers' in cls.__dict__:
-            cls.yaml_multi_representers = cls.yaml_multi_representers.copy()
-        cls.yaml_multi_representers[data_type] = representer
 
     def represent_scalar(self, tag, value, style=None):
         if style is None:
@@ -124,6 +92,3 @@ class NxSafeRepresenter:
             else:
                 node.flow_style = best_style
         return node
-
-    def ignore_aliases(self, data):
-        return False
