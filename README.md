@@ -19,18 +19,19 @@ See:
 
 ## Implementation
 
-### Milestone 1
+![RGraph](https://github.com/yaml-programming/nx_yaml/assets/1548532/6423f4a4-ea2f-4397-9973-540c0a57cec7)
 
-1. Copy and paste from PyYAML
-1. Replace uses of `nodes`
-1. Publish a drop-in `yaml` replacement
-
+Four abstraction isolate and replace [pyyaml.nodes] representation graph implementation:
 * `NxComposer`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/composer.py
 * `NxConstructor`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/constructor.py
 * `NxRepresenter`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/representer.py
 * `NxSerializer`: https://github.com/yaml/pyyaml/blob/main/lib/yaml/serializer.py
 
-With these and `CEmitter` and `CParser` from [LibYAML](https://pyyaml.org/wiki/LibYAML) we use all fast, native library bindings in the full load/dump cycle.
+### Milestone 1
+
+1. Copy and paste from PyYAML
+1. Replace uses of `nodes`
+1. Publish a drop-in `yaml` replacement
 
 ### Milestone 2
 
@@ -47,9 +48,9 @@ The development environment is self-contained using the `pipenv` tool.
 
 ### Testing
 
-* Create YAML and GML files in `resources/tests`.
+* Create YAML and NetworkX files in `resources/tests`.
 * Write graph tests using `pytest`.
 
 
 [Representation Graph]: https://yaml.org/spec/1.2.2/#321-representation-graph
-[yaml.nodes]: https://github.com/yaml/pyyaml/blob/main/lib/yaml/nodes.py
+[pyyaml.nodes]: https://github.com/yaml/pyyaml/blob/main/lib/yaml/nodes.py
