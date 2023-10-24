@@ -6,7 +6,7 @@ Fast [Representation Graph] for PyYAML using NetworkX.
 
 ### All users
 
-This library offers four implementations that jointly bypass the [yaml.nodes] library. This is transparent to users of `load` and `dump` since the representation graph is an implementation detail. This library will be faster thanks to a better graph implementation.
+This library offers four implementations that jointly bypass the [pyyaml.nodes] library. This is transparent when you use `load` and `dump` since the representation graph is an implementation detail. This library will be faster thanks to a better graph implementation.
 
 ### Graph users
 
@@ -30,14 +30,14 @@ Four abstraction isolate and replace [pyyaml.nodes] representation graph impleme
 ### Milestone 1
 
 1. Copy and paste from PyYAML
-1. Replace uses of `nodes`
-1. Publish a drop-in `yaml` replacement
+1. Replace uses of `nodes` with NetworkX
+1. Publish a drop-in pip replacement
 
 ### Milestone 2
 
-1. Evaluate adoption
-1. Evaluate performance
-1. Propose these changes upstream
+1. Compare performance
+1. Compare alignment with spec
+1. Share findings
 
 ## Development environment
 
@@ -48,8 +48,8 @@ The development environment is self-contained using the `pipenv` tool.
 
 ### Testing
 
-* Create YAML and NetworkX files in `resources/tests`.
-* Write graph tests using `pytest`.
+* Just `pytest`
+* Store graphs in `resources/tests`
 
 
 [Representation Graph]: https://yaml.org/spec/1.2.2/#321-representation-graph
