@@ -36,9 +36,10 @@ class NxComposer:
         if not self.check_event(StreamEndEvent):
             event = self.get_event()
             document_start_mark = freeze_mark(document.graph["start_mark"]) if "start_mark" in document.graph else None
+            event_start_mark = freeze_mark(event.start_mark)
             raise ComposerError("expected a single document in the stream",
                     document_start_mark, "but found another document",
-                    freeze_mark(event.start_mark))
+                    event_start_mark)
 
         # Drop the STREAM-END event.
         self.get_event()
@@ -50,7 +51,7 @@ class NxComposer:
         self.get_event()
 
         # Compose the root node.
-        node = nx.DiGraph()
+        node = self.compose_node(nx.DiGraph(), None)
 
         # Drop the DOCUMENT-END event.
         self.get_event()
@@ -90,6 +91,7 @@ class NxComposer:
             tag = self.resolve("scalar", event.value, event.implicit)
         node = nx.DiGraph(kind='scalar', tag=tag, value=event.value,
                 start_mark=freeze_mark(event.start_mark), end_mark=freeze_mark(event.end_mark), style=event.style)
+        node.add_node(event.value)
         if anchor is not None:
             self.anchors[anchor] = node
         return node
@@ -140,12 +142,12 @@ class NxComposer:
         node.end_mark = freeze_mark(end_event.end_mark)
         return node
 
-def freeze_mark(self):
+def freeze_mark(mark):
     return {
-        "name": self.name,
-        "index": self.index,
-        "line": self.line,
-        "column": self.column,
-        "buffer": self.buffer,
-        "pointer": self.pointer,
+        "name": mark.name,
+        "index": mark.index,
+        "line": mark.line,
+        "column": mark.column,
+        "buffer": mark.buffer,
+        "pointer": mark.pointer,
     }

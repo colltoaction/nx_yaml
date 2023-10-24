@@ -22,6 +22,9 @@ class NxSafeRepresenter:
         self.alias_key = None
 
     def represent_data(self, data):
+        if data is None:
+            return nx.DiGraph(kind='scalar', value="")
+
         self.alias_key = id(data)
         if self.alias_key is not None:
             if self.alias_key in self.represented_objects:
@@ -32,6 +35,7 @@ class NxSafeRepresenter:
             #self.represented_objects[alias_key] = None
             self.object_keeper.append(data)
         node = nx.DiGraph(kind='scalar', value=str(data))
+        node.add_node(str(data))
         #if alias_key is not None:
         #    self.represented_objects[alias_key] = node
         return node
@@ -39,8 +43,8 @@ class NxSafeRepresenter:
     def represent_scalar(self, tag, value, style=None):
         if style is None:
             style = self.default_style
-        node = nx.DiGraph()
-        node.add_node(value, kind='scalar', tag=tag, style=style)
+        node = nx.DiGraph(kind='scalar', tag=tag, value=value, style=style)
+        node.add_node(value)
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         return node

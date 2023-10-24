@@ -9,9 +9,6 @@ import collections.abc, types
 
 class NxSafeConstructor:
 
-    yaml_constructors = {}
-    yaml_multi_constructors = {}
-
     def __init__(self):
         self.constructed_objects = {}
         self.recursive_objects = {}
@@ -66,7 +63,7 @@ class NxSafeConstructor:
                     "found unconstructable recursive node", node.start_mark)
         self.recursive_objects[node] = None
         constructor = None
-        kind = node.graph["kind"] if "kind" in node.graph else "scalar"
+        kind = node.graph.get("kind", "scalar")
         if kind == "scalar":
             constructor = self.__class__.construct_scalar
         elif kind == "sequence":
@@ -89,12 +86,17 @@ class NxSafeConstructor:
         return data
 
     def construct_scalar(self, node):
-        kind = node.graph["kind"] if "kind" in node.graph else "scalar"
-        if kind != "scalar":
+        """node is a digraph with no annotations"""
+        kind = node.graph.get("kind", None)
+        if not kind:
+            match tuple(iter(node.nodes.items())):
+                case ( ): return None
+                case ( (value, _), ): return value
+        elif kind != "scalar":
             raise ConstructorError(None, None,
                     "expected a scalar node, but found %s" % node.id,
                     node.start_mark)
-        value = node.graph["value"] if "value" in node.graph else ""
+        value = node.graph.get("value", "")
         return value
 
     def construct_sequence(self, node, deep=False):
