@@ -11,22 +11,22 @@ from . import NxSafeDumper, NxSafeLoader
 def test_null():
     expected_yaml = "tests/resources/yaml/empty.yaml"
     expected_gml = "tests/resources/networkx/null.gml"
-    _test_node_to_native(expected_yaml, expected_gml)
+    _test_representation_to_native(expected_yaml, expected_gml)
 
 
 def test_single_node():
     expected_yaml = "tests/resources/yaml/single_node.yaml"
     expected_gml = "tests/resources/networkx/single_node.gml"
-    _test_node_to_native(expected_yaml, expected_gml)
+    _test_representation_to_native(expected_yaml, expected_gml)
 
 
-def test_loop():
+def test_self_loop():
     expected_yaml = "tests/resources/yaml/self_loop.yaml"
     expected_gml = "tests/resources/networkx/single_node.gml"
-    _test_node_to_native(expected_yaml, expected_gml)
+    _test_representation_to_native(expected_yaml, expected_gml)
 
 
-def _test_node_to_native(expected_yaml, expected_gml):
+def _test_representation_to_native(expected_yaml, expected_gml):
     expected_native = open(expected_yaml)
     expected_native = yaml.load(expected_native, Loader=NxSafeLoader)
     expected_representation = nx.read_gml(expected_gml)
