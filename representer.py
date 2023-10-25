@@ -1,6 +1,7 @@
 
 __all__ = ['NxSafeRepresenter']
 
+import itertools
 import networkx as nx
 
 class NxSafeRepresenter:
@@ -22,9 +23,6 @@ class NxSafeRepresenter:
         self.alias_key = None
 
     def represent_data(self, data):
-        if data is None:
-            return nx.DiGraph(kind='scalar', value="")
-
         self.alias_key = id(data)
         if self.alias_key is not None:
             if self.alias_key in self.represented_objects:
@@ -34,10 +32,24 @@ class NxSafeRepresenter:
                 return node
             #self.represented_objects[alias_key] = None
             self.object_keeper.append(data)
-        node = nx.DiGraph(kind='scalar', value=str(data))
-        node.add_node(str(data))
-        #if alias_key is not None:
-        #    self.represented_objects[alias_key] = node
+
+        node = nx.DiGraph()
+        match data:
+            case None: node.graph["kind"] = "scalar"
+            case str(value):
+                node.graph["kind"] = "scalar"
+                node.add_node(value)
+            case tuple(values) | list(values):
+                pass
+            case dict(key_values):
+                node.graph["kind"] = "mapping"
+                for key, value in key_values.items():
+                    node_key = self.represent_data(key)
+                    node_value = self.represent_data(value)
+                    node.add_edges_from(
+                        itertools.product(
+                            (n for n, d in node_key.in_degree() if d == 0),
+                            (n for n, d in node_value.in_degree() if d == 0)))
         return node
 
     def represent_scalar(self, tag, value, style=None):
@@ -70,8 +82,7 @@ class NxSafeRepresenter:
 
     def represent_mapping(self, tag, mapping, flow_style=None):
         value = []
-        node = nx.DiGraph(kind='mapping')
-        node.add_node(value, kind='mapping', tag=tag, flow_style=flow_style)
+        node = nx.DiGraph(kind='mapping', tag=tag, flow_style=flow_style)
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         best_style = True

@@ -18,7 +18,13 @@ def test_single_node():
 
 def test_self_loop():
     expected_presentation = "tests/resources/yaml/self_loop.yaml"
-    expected_representation = "tests/resources/networkx/single_node.gml"
+    expected_representation = "tests/resources/networkx/self_loop.gml"
+    _test_presentation_to_representation(expected_presentation, expected_representation)
+
+
+def test_two_node_mapping():
+    expected_presentation = "tests/resources/yaml/two_node_mapping.yaml"
+    expected_representation = "tests/resources/networkx/two_node_mapping.gml"
     _test_presentation_to_representation(expected_presentation, expected_representation)
 
 

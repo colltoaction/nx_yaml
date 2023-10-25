@@ -1,6 +1,7 @@
 
 __all__ = ['NxComposer']
 
+import itertools
 from yaml import AliasEvent, MappingEndEvent, MappingStartEvent, ScalarEvent, SequenceEndEvent, SequenceStartEvent, StreamStartEvent, StreamEndEvent
 from yaml.composer import ComposerError
 import networkx as nx
@@ -127,8 +128,12 @@ class NxComposer:
         while not self.check_event(MappingEndEvent):
             item_key = self.compose_node(node, None)
             item_value = self.compose_node(node, item_key)
-            node.update(item_key)
-            node.update(item_value)
+            node.update(nodes=item_key.nodes, edges=item_key.edges)
+            node.update(nodes=item_value.nodes, edges=item_value.edges)
+            node.add_edges_from(
+                itertools.product(
+                    (n for n, d in item_key.in_degree() if d == 0),
+                    (n for n, d in item_value.in_degree() if d == 0)))
         end_event = self.get_event()
         node.end_mark = freeze_mark(end_event.end_mark)
         return node
