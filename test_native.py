@@ -20,6 +20,12 @@ def test_single_node():
     _test_node_to_native(expected_yaml, expected_gml)
 
 
+def test_loop():
+    expected_yaml = "tests/resources/yaml/self_loop.yaml"
+    expected_gml = "tests/resources/networkx/single_node.gml"
+    _test_node_to_native(expected_yaml, expected_gml)
+
+
 def _test_node_to_native(expected_yaml, expected_gml):
     expected_native = open(expected_yaml)
     expected_native = yaml.load(expected_native, Loader=NxSafeLoader)
@@ -30,11 +36,3 @@ def _test_node_to_native(expected_yaml, expected_gml):
 
     assert actual_native == expected_native
     assert nx.is_isomorphic(actual_representation, expected_representation)
-
-
-# def test_loop():
-#     with open("tests/resources/yaml/loop.yaml", "r") as d:
-#         expected = yaml.compose(d, Loader=NxSafeLoader)
-#         actual = nx.read_gml("tests/resources/networkx/loop.gml")
-#         actual = yaml.serialize(d, Dumper=NxSafeDumper)
-#         assert nx.utils.graphs_equal(actual, expected)

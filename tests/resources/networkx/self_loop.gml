@@ -3,7 +3,7 @@ graph [
     node [
         id 0
         label
-        "source"
+        "my node"
     ]
     edge[
         source 0

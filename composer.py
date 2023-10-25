@@ -117,27 +117,18 @@ class NxComposer:
         return node
 
     def compose_mapping_node(self, anchor):
-        assert print("mapping")
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
             tag = self.resolve("mapping", None, start_event.implicit)
         node = nx.DiGraph(kind='mapping')
-        node.add_node((),
-                kind='mapping', tag=tag,
-                start_mark=freeze_mark(start_event.start_mark),
-                flow_style=start_event.flow_style)
         if anchor is not None:
             self.anchors[anchor] = node
         while not self.check_event(MappingEndEvent):
-            #key_event = self.peek_event()
             item_key = self.compose_node(node, None)
-            #if item_key in node.value:
-            #    raise ComposerError("while composing a mapping", freeze_mark(start_event.start_mark),
-            #            "found duplicate key", freeze_mark(key_event.start_mark))
             item_value = self.compose_node(node, item_key)
-            #node.value[item_key] = item_value
-            node.value.append((item_key, item_value))
+            node.update(item_key)
+            node.update(item_value)
         end_event = self.get_event()
         node.end_mark = freeze_mark(end_event.end_mark)
         return node

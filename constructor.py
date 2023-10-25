@@ -6,6 +6,7 @@ __all__ = [
 from yaml.constructor import ConstructorError
 
 import collections.abc, types
+import networkx as nx
 
 class NxSafeConstructor:
 
@@ -39,7 +40,7 @@ class NxSafeConstructor:
             return self.construct_document(node)
         return None
 
-    def construct_document(self, node):
+    def construct_document(self, node: nx.DiGraph):
         data = self.construct_object(node)
         while self.state_generators:
             state_generators = self.state_generators
@@ -52,7 +53,7 @@ class NxSafeConstructor:
         self.deep_construct = False
         return data
 
-    def construct_object(self, node, deep=False):
+    def construct_object(self, node: nx.DiGraph, deep=False):
         if node in self.constructed_objects:
             return self.constructed_objects[node]
         if deep:
@@ -62,15 +63,11 @@ class NxSafeConstructor:
             raise ConstructorError(None, None,
                     "found unconstructable recursive node", node.start_mark)
         self.recursive_objects[node] = None
-        constructor = None
-        kind = node.graph.get("kind", "scalar")
-        if kind == "scalar":
-            constructor = self.__class__.construct_scalar
-        elif kind == "sequence":
-            constructor = self.__class__.construct_sequence
-        elif kind == "mapping":
-            constructor = self.__class__.construct_mapping
-        data = constructor(self, node)
+        data = None
+        match node.graph.get("kind", None):
+            case "scalar": data = self.construct_scalar(node)
+            case "sequence": data = self.construct_sequence(node)
+            case _: data = self.construct_mapping(node)
         if isinstance(data, types.GeneratorType):
             generator = data
             data = next(generator)
@@ -85,7 +82,7 @@ class NxSafeConstructor:
             self.deep_construct = old_deep
         return data
 
-    def construct_scalar(self, node):
+    def construct_scalar(self, node: nx.DiGraph):
         """node is a digraph with no annotations"""
         kind = node.graph.get("kind", None)
         if not kind:
@@ -99,64 +96,19 @@ class NxSafeConstructor:
         value = node.graph.get("value", "")
         return value
 
-    def construct_sequence(self, node, deep=False):
-        if node.kind != "sequence":
-            raise ConstructorError(None, None,
-                    "expected a sequence node, but found %s" % node.id,
-                    node.start_mark)
-        return tuple(self.construct_object(child, deep=deep)
-                for child in node.value)
+    def construct_sequence(self, node: nx.DiGraph, deep=False):
+        return tuple(
+            self.construct_object(child, deep=deep)
+            for child in node.value)
 
-    def construct_mapping(self, node, deep=False):
-        assert False
-        if node.kind != "mapping":
-            raise ConstructorError(None, None,
-                    "expected a mapping node, but found %s" % node.id,
-                    node.start_mark)
-
-        self.flatten_mapping(node)
-
-        mapping = {}
-        for key_node, value_node in node.value:
-            key = self.construct_object(key_node, deep=deep)
-            if not isinstance(key, collections.abc.Hashable):
-                raise ConstructorError("while constructing a mapping", node.start_mark,
-                        "found unhashable key", key_node.start_mark)
-            value = self.construct_object(value_node, deep=deep)
-            mapping[key] = value
-        return mapping
-
-    def flatten_mapping(self, node):
-        merge = []
-        index = 0
-        while index < len(node.value):
-            key_node, value_node = node.value[index]
-            if key_node.tag == 'tag:yaml.org,2002:merge':
-                del node.value[index]
-                if value_node.kind == "mapping":
-                    self.flatten_mapping(value_node)
-                    merge.extend(value_node.value)
-                elif value_node.kind == "sequence":
-                    submerge = []
-                    for subnode in value_node.value:
-                        if subnode.kind != "mapping":
-                            raise ConstructorError("while constructing a mapping",
-                                    node.start_mark,
-                                    "expected a mapping for merging, but found %s"
-                                    % subnode.id, subnode.start_mark)
-                        self.flatten_mapping(subnode)
-                        submerge.append(subnode.value)
-                    submerge.reverse()
-                    for value in submerge:
-                        merge.extend(value)
-                else:
-                    raise ConstructorError("while constructing a mapping", node.start_mark,
-                            "expected a mapping or list of mappings for merging, but found %s"
-                            % value_node.id, value_node.start_mark)
-            elif key_node.tag == 'tag:yaml.org,2002:value':
-                key_node.tag = 'tag:yaml.org,2002:str'
-                index += 1
-            else:
-                index += 1
-        if merge:
-            node.value = merge + node.value
+    def construct_mapping(self, node: nx.DiGraph, deep=False):
+        """"""
+        match list(nx.algorithms.cycles.simple_cycles(node)):
+            case []:
+                match list(node.nodes):
+                    case []: return None
+                    case [c]: return c
+            case [[n]]:
+                return n
+            case [[c, *o]]:
+                return {c: o}
