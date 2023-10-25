@@ -5,7 +5,7 @@ __all__ = [
 
 from yaml.constructor import ConstructorError
 
-import collections.abc, types
+import types
 import networkx as nx
 
 class NxSafeConstructor:
@@ -14,7 +14,6 @@ class NxSafeConstructor:
         self.constructed_objects = {}
         self.recursive_objects = {}
         self.state_generators = []
-        self.deep_construct = False
 
     def check_data(self):
         # If there are more documents available?
@@ -50,15 +49,11 @@ class NxSafeConstructor:
                     pass
         self.constructed_objects = {}
         self.recursive_objects = {}
-        self.deep_construct = False
         return data
 
-    def construct_object(self, node: nx.DiGraph, deep=False):
+    def construct_object(self, node: nx.DiGraph):
         if node in self.constructed_objects:
             return self.constructed_objects[node]
-        if deep:
-            old_deep = self.deep_construct
-            self.deep_construct = True
         if node in self.recursive_objects:
             raise ConstructorError(None, None,
                     "found unconstructable recursive node", node.start_mark)
@@ -71,15 +66,9 @@ class NxSafeConstructor:
         if isinstance(data, types.GeneratorType):
             generator = data
             data = next(generator)
-            if self.deep_construct:
-                for dummy in generator:
-                    pass
-            else:
-                self.state_generators.append(generator)
+            self.state_generators.append(generator)
         self.constructed_objects[node] = data
         del self.recursive_objects[node]
-        if deep:
-            self.deep_construct = old_deep
         return data
 
     def construct_scalar(self, node: nx.DiGraph):
@@ -96,12 +85,12 @@ class NxSafeConstructor:
         value = node.graph.get("value", "")
         return value
 
-    def construct_sequence(self, node: nx.DiGraph, deep=False):
+    def construct_sequence(self, node: nx.DiGraph):
         return tuple(
-            self.construct_object(child, deep=deep)
+            self.construct_object(child)
             for child in node.value)
 
-    def construct_mapping(self, node: nx.DiGraph, deep=False):
+    def construct_mapping(self, node: nx.DiGraph):
         """"""
         match list(nx.algorithms.cycles.simple_cycles(node)):
             case []:
