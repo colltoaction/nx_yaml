@@ -31,16 +31,14 @@ class NxSafeConstructor:
 
     def construct_object(self, node: nx.DiGraph):
         match node.graph.get("kind", None):
-            case "scalar": data = self.construct_scalar(node)
-            case "sequence": data = self.construct_sequence(node)
-            case _: data = self.construct_mapping(node)
-        if isinstance(data, types.GeneratorType):
-            generator = data
-            data = next(generator)
-            self.state_generators.append(generator)
-        self.constructed_objects[node] = data
-        del self.recursive_objects[node]
-        return data
+            case "scalar": return self.construct_scalar(node)
+            case "sequence": return self.construct_sequence(node)
+            case "mapping": return self.construct_mapping(node)
+            case None:
+                        # self.construct_sequence(node) or \
+                return self.construct_scalar(node) or \
+                        self.construct_mapping(node) or \
+                        None
 
     def construct_scalar(self, node: nx.DiGraph):
         """node is a digraph with no annotations"""
@@ -52,9 +50,10 @@ class NxSafeConstructor:
             case _: return None
 
     def construct_sequence(self, node: nx.DiGraph):
+        # assert nx.is_line
         return tuple(
-            self.construct_object(child)
-            for child in node.value)
+            child
+            for child in node.nodes)
 
     def construct_mapping(self, node: nx.DiGraph):
         """"""

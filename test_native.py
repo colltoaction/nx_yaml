@@ -26,16 +26,21 @@ def test_self_loop():
     _test_representation_to_native(expected_yaml, expected_gml)
 
 
-
 def test_two_node_mapping():
     expected_yaml = "tests/resources/yaml/two_node_mapping.yaml"
     expected_gml = "tests/resources/networkx/two_node_mapping.gml"
     _test_representation_to_native(expected_yaml, expected_gml)
 
 
+def test_two_node_list():
+    expected_yaml = "tests/resources/yaml/two_node_list.yaml"
+    expected_gml = "tests/resources/networkx/two_node_list.gml"
+    _test_representation_to_native(expected_yaml, expected_gml)
+
+
 def _test_representation_to_native(expected_yaml, expected_gml):
     expected_yaml = open(expected_yaml)
-    expected_native = yaml.load(expected_yaml, Loader=yaml.SafeLoader)
+    expected_native = yaml.load(expected_yaml, Loader=NxSafeLoader)
     expected_representation = nx.read_gml(expected_gml)
 
     actual_representation = NxSafeRepresenter().represent_data(expected_native)

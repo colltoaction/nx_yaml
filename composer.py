@@ -102,16 +102,15 @@ class NxComposer:
         tag = start_event.tag
         if tag is None or tag == '!':
             tag = self.resolve("sequence", None, start_event.implicit)
-        node = nx.DiGraph(kind='sequence')
-        node.add_node((),
-                kind='sequence', tag=tag,
-                start_event=freeze_mark(start_event.start_mark),
-                flow_style=start_event.flow_style)
+        node = nx.DiGraph(kind='sequence', tag=tag,
+                    start_event=freeze_mark(start_event.start_mark),
+                    flow_style=start_event.flow_style)
         if anchor is not None:
             self.anchors[anchor] = node
         index = 0
         while not self.check_event(SequenceEndEvent):
-            node.value.append(self.compose_node(node, index))
+            child_node = self.compose_node(node, index)
+            node.update(nodes=child_node.nodes, edges=child_node.edges)
             index += 1
         end_event = self.get_event()
         node.end_mark = freeze_mark(end_event.end_mark)

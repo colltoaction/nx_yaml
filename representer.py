@@ -40,7 +40,8 @@ class NxSafeRepresenter:
                 node.graph["kind"] = "scalar"
                 node.add_node(value)
             case tuple(values) | list(values):
-                pass
+                node.graph["kind"] = "sequence"
+                node.add_edges_from(zip(values[:-1], values[1:]))
             case dict(key_values):
                 node.graph["kind"] = "mapping"
                 for key, value in key_values.items():
