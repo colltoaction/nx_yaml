@@ -49,11 +49,16 @@ class NxSafeConstructor:
             case (value, ): return value
             case _: return None
 
-    def construct_sequence(self, node: nx.DiGraph):
-        # assert nx.is_line
-        return tuple(
-            child
-            for child in node.nodes)
+    def construct_sequence(self, node: nx.DiGraph) -> tuple:
+        # TODO recursively construct with
+        # self.construct_object
+        seq = []
+        for n in node.nodes:
+            match n:
+                case nx.DiGraph(kind="scalar", value=v):
+                    seq.append(v)
+                case _: seq.append(n)
+        return tuple(seq)
 
     def construct_mapping(self, node: nx.DiGraph):
         """"""

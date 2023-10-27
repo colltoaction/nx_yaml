@@ -22,7 +22,7 @@ class NxSafeRepresenter:
         self.object_keeper = []
         self.alias_key = None
 
-    def represent_data(self, data):
+    def represent_data(self, data) -> nx.DiGraph:
         self.alias_key = id(data)
         if self.alias_key is not None:
             if self.alias_key in self.represented_objects:
@@ -37,74 +37,47 @@ class NxSafeRepresenter:
         match data:
             case None: node.graph["kind"] = "scalar"
             case str(value):
-                node.graph["kind"] = "scalar"
-                node.add_node(value)
+                node = self.represent_scalar(value)
             case tuple(values) | list(values):
-                node.graph["kind"] = "sequence"
-                node.add_edges_from(zip(values[:-1], values[1:]))
+                node = self.represent_sequence(values)
             case dict(key_values):
-                node.graph["kind"] = "mapping"
-                for key, value in key_values.items():
-                    node_key = self.represent_data(key)
-                    node_value = self.represent_data(value)
-                    node.add_edges_from(
-                        itertools.product(
-                            (n for n, d in node_key.in_degree() if d == 0),
-                            (n for n, d in node_value.in_degree() if d == 0)))
+                node = self.represent_mapping(key_values)
         return node
 
-    def represent_scalar(self, tag, value, style=None):
-        if style is None:
-            style = self.default_style
-        node = nx.DiGraph(kind='scalar', tag=tag, value=value, style=style)
+    def represent_scalar(self, value) -> nx.DiGraph:
+        node = nx.DiGraph(kind='scalar', value=value)
         node.add_node(value)
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         return node
 
-    def represent_sequence(self, tag, sequence, flow_style=None):
-        value = []
+    def represent_sequence(self, sequence) -> nx.DiGraph:
         node = nx.DiGraph(kind='sequence')
-        node.add_node(value, kind='sequence', tag=tag, flow_style=flow_style)
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
-        best_style = True
         for item in sequence:
             node_item = self.represent_data(item)
-            if node_item.kind != "scalar" and not node_item.style:
-                best_style = False
-            value.append(node_item)
-        if flow_style is None:
-            if self.default_flow_style is not None:
-                node.flow_style = self.default_flow_style
-            else:
-                node.flow_style = best_style
+            node.add_node(node_item)
         return node
 
-    def represent_mapping(self, tag, mapping, flow_style=None):
-        value = []
-        node = nx.DiGraph(kind='mapping', tag=tag, flow_style=flow_style)
+        # node.graph["kind"] = "sequence"
+        # for src, tgt in zip(values[:-1], values[1:]):
+        #     # assert print(values)
+        #     node_key = self.represent_data(src)
+        #     node_value = self.represent_data(tgt)
+        #     node.update(nodes=node_key.nodes, edges=node_key.edges)
+        #     node.update(nodes=node_value.nodes, edges=node_value.edges)
+        #     node.add_edges_from(
+        #         itertools.product(
+        #             (n for n, d in node_key.in_degree() if d == 0),
+        #             (n for n, d in node_value.in_degree() if d == 0)))
+
+    def represent_mapping(self, mapping: dict) -> nx.DiGraph:
+        node = nx.DiGraph(kind='mapping')
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
-        best_style = True
-        if hasattr(mapping, 'items'):
-            mapping = list(mapping.items())
-            if self.sort_keys:
-                try:
-                    mapping = sorted(mapping)
-                except TypeError:
-                    pass
-        for item_key, item_value in mapping:
+        for item_key, item_value in mapping.items():
             node_key = self.represent_data(item_key)
             node_value = self.represent_data(item_value)
-            if node_key.kind == "scalar" and not node_key.style:
-                best_style = False
-            if node_value.kind == "scalar" and not node_value.style:
-                best_style = False
-            value.append((node_key, node_value))
-        if flow_style is None:
-            if self.default_flow_style is not None:
-                node.flow_style = self.default_flow_style
-            else:
-                node.flow_style = best_style
+            node.add_edge(node_key, node_value)
         return node

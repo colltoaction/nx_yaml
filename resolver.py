@@ -1,7 +1,6 @@
 
 __all__ = ['NxResolver']
 
-from yaml.resolver import ResolverError
 
 class NxResolver:
 
