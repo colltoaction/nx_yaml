@@ -1,4 +1,5 @@
 import networkx as nx
+import matplotlib.pyplot as plt
 import yaml
 
 from . import NxSafeLoader
@@ -28,13 +29,18 @@ def test_two_node_mapping():
     _test_presentation_to_representation(expected_presentation, expected_representation)
 
 
-def _test_presentation_to_representation(expected_yaml, expected_representation):
+def test_nested_lists():
+    expected_presentation = "tests/resources/yaml/nested_lists.yaml"
+    expected_representation = "tests/resources/networkx/nested_lists.gml"
+    _test_presentation_to_representation(expected_presentation, expected_representation)
+
+
+def _test_presentation_to_representation(expected_yaml, expected_gml):
     expected_presentation = open(expected_yaml)
     expected_presentation = yaml.load(expected_presentation, Loader=NxSafeLoader)
-    expected_representation = nx.read_gml(expected_representation)
+    expected_representation = nx.read_gml(expected_gml)
     actual_representation = open(expected_yaml)
     actual_representation = yaml.compose(actual_representation, Loader=NxSafeLoader)
 
     # TODO presentation equivalence
-    # assert actual_presentation == expected_presentation
     assert nx.is_isomorphic(actual_representation, expected_representation)

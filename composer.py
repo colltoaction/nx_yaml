@@ -7,6 +7,13 @@ from yaml.composer import ComposerError
 import networkx as nx
 
 class NxComposer:
+    """
+    Produce an nx.DiGraph from a YAML event stream.
+    The result is a nested structure of digraphs
+    where the kind attribute indicates the substructure.
+    To obtain a flat nx.DiGraph we merge and add an edge between
+    the roots of each linked digraph.
+    """
 
     def __init__(self):
         self.anchors = {}
@@ -47,7 +54,7 @@ class NxComposer:
 
         return document
 
-    def compose_document(self):
+    def compose_document(self) -> nx.DiGraph:
         # Drop the DOCUMENT-START event.
         self.get_event()
 
@@ -60,7 +67,7 @@ class NxComposer:
         self.anchors = {}
         return node
 
-    def compose_node(self, parent, index):
+    def compose_node(self, parent, index) -> nx.DiGraph:
         if self.check_event(AliasEvent):
             event = self.get_event()
             anchor = event.anchor
@@ -85,7 +92,7 @@ class NxComposer:
         self.ascend_resolver()
         return node
 
-    def compose_scalar_node(self, anchor):
+    def compose_scalar_node(self, anchor) -> nx.DiGraph:
         event = self.get_event()
         tag = event.tag
         if tag is None or tag == '!':
@@ -97,7 +104,7 @@ class NxComposer:
             self.anchors[anchor] = node
         return node
 
-    def compose_sequence_node(self, anchor):
+    def compose_sequence_node(self, anchor) -> nx.DiGraph:
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
@@ -108,15 +115,27 @@ class NxComposer:
         if anchor is not None:
             self.anchors[anchor] = node
         index = 0
+        child_nodes = []
         while not self.check_event(SequenceEndEvent):
             child_node = self.compose_node(node, index)
-            node.update(nodes=child_node.nodes, edges=child_node.edges)
+            child_nodes.append(child_node)
+            node.update(edges=child_node.edges, nodes=child_node.nodes)
+        child_nodes = [list(nx.algorithms.topological_sort(n)) for n in child_nodes]
+        edges = itertools.pairwise(child_nodes)
+        for src, tgt in edges:
+            print(node.nodes, node.edges)
+            first_src = src[0]
+            first_tgt = tgt[0]
+            node.add_edge(first_src, first_tgt)
             index += 1
+
+        # edges = itertools.combinations(child_nodes, 2)
+        # node.add_edges_from(edges)
         end_event = self.get_event()
-        node.end_mark = freeze_mark(end_event.end_mark)
+        node.graph["end_mark"] = freeze_mark(end_event.end_mark)
         return node
 
-    def compose_mapping_node(self, anchor):
+    def compose_mapping_node(self, anchor) -> nx.DiGraph:
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':

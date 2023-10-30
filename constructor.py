@@ -3,6 +3,7 @@ __all__ = [
     'NxSafeConstructor',
 ]
 
+import itertools
 from yaml.constructor import ConstructorError
 
 import networkx as nx
@@ -50,6 +51,9 @@ class NxSafeConstructor:
             case _: return None
 
     def construct_sequence(self, node: nx.DiGraph) -> tuple:
+        edges = map(self.construct_object, node.nodes)
+        edges = itertools.combinations(node.nodes, 2)
+        node.add_edges_from(edges)
         # TODO recursively construct with
         # self.construct_object
         seq = []
@@ -57,7 +61,8 @@ class NxSafeConstructor:
             match n:
                 case nx.DiGraph(kind="scalar", value=v):
                     seq.append(v)
-                case _: seq.append(n)
+                case nx.DiGraph(kind="sequence"):
+                    seq.append(self.construct_sequence(n))
         return tuple(seq)
 
     def construct_mapping(self, node: nx.DiGraph):

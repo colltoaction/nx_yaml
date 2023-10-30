@@ -55,9 +55,9 @@ class NxSafeRepresenter:
         node = nx.DiGraph(kind='sequence')
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
-        for item in sequence:
-            node_item = self.represent_data(item)
-            node.add_node(node_item)
+        sequence = map(self.represent_data, sequence)
+        for k, v in itertools.combinations(sequence, 2):
+            node.add_edge(k, v)
         return node
 
         # node.graph["kind"] = "sequence"
