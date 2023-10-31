@@ -51,10 +51,10 @@ def test_nested_lists():
 
 def _test_representation_to_native(expected_yaml, expected_gml):
     expected_yaml = open(expected_yaml)
-    expected_native = yaml.load(expected_yaml, Loader=NxSafeLoader)
+    expected_native = yaml.load(expected_yaml, Loader=yaml.SafeLoader)
+    actual_representation = NxSafeRepresenter().represent_data(expected_native)
     expected_representation = nx.read_gml(expected_gml)
 
-    actual_native = NxSafeConstructor().construct_object(expected_representation)
-
-    assert actual_native == expected_native
-    # assert nx.is_isomorphic(actual_representation, expected_representation)
+    print(actual_representation.edges)
+    print(expected_representation.edges)
+    assert nx.is_isomorphic(actual_representation, expected_representation)

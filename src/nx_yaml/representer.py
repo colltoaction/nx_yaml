@@ -55,22 +55,22 @@ class NxSafeRepresenter:
         node = nx.DiGraph(kind='sequence')
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
-        sequence = map(self.represent_data, sequence)
-        for k, v in itertools.combinations(sequence, 2):
-            node.add_edge(k, v)
-        return node
+        sequence = list(map(self.represent_data, sequence))
+        if len(sequence) == 1:
+            data = sequence[0]
+            node.add_nodes_from(data)
+            sle = nx.selfloop_edges(data)
+            node.add_edges_from(sle)
 
-        # node.graph["kind"] = "sequence"
-        # for src, tgt in zip(values[:-1], values[1:]):
-        #     # assert print(values)
-        #     node_key = self.represent_data(src)
-        #     node_value = self.represent_data(tgt)
-        #     node.update(nodes=node_key.nodes, edges=node_key.edges)
-        #     node.update(nodes=node_value.nodes, edges=node_value.edges)
-        #     node.add_edges_from(
-        #         itertools.product(
-        #             (n for n, d in node_key.in_degree() if d == 0),
-        #             (n for n, d in node_value.in_degree() if d == 0)))
+        sequence = itertools.pairwise(sequence)
+        for node_key, node_value in sequence:
+            node.update(edges=node_key.edges, nodes=node_key.nodes)
+            node.update(edges=node_value.edges, nodes=node_value.nodes)
+            node.add_edges_from(
+                itertools.product(
+                    (n for n, d in node_key.in_degree() if d == 0),
+                    (n for n, d in node_value.in_degree() if d == 0)))
+        return node
 
     def represent_mapping(self, mapping: dict) -> nx.DiGraph:
         node = nx.DiGraph(kind='mapping')
@@ -79,5 +79,10 @@ class NxSafeRepresenter:
         for item_key, item_value in mapping.items():
             node_key = self.represent_data(item_key)
             node_value = self.represent_data(item_value)
-            node.add_edge(node_key, node_value)
+            node.update(edges=node_key.edges, nodes=node_key.nodes)
+            node.update(edges=node_value.edges, nodes=node_value.nodes)
+            node.add_edges_from(
+                itertools.product(
+                    (n for n, d in node_key.in_degree() if d == 0),
+                    (n for n, d in node_value.in_degree() if d == 0)))
         return node

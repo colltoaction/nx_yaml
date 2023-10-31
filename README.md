@@ -2,6 +2,30 @@
 
 Fast [Representation Graph] for PyYAML using NetworkX.
 
+## Usage
+
+### Text <-> native
+
+```py
+import yaml
+from nx_yaml import NxSafeDumper, NxSafeLoader
+
+data_in = yaml.load("yaml: great", Loader=NxSafeLoader)
+data_out = yaml.dump(data_in, Dumper=NxSafeDumper)
+print(data_out)
+```
+
+### Text <-> graph
+
+```py
+import networkx as nx
+import matplotlib.pyplot as plt
+
+data_out = yaml.compose("[nx, also great]", Loader=NxSafeLoader)
+nx.draw_spectral(data_out, with_labels=True, node_size=5000)
+plt.show()
+```
+
 ## Design
 
 ### All users

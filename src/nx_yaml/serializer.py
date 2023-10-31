@@ -60,14 +60,14 @@ class NxSerializer:
                 self.anchors[node] = self.generate_anchor(node)
         else:
             self.anchors[node] = None
-            kind = node.graph["kind"] if "kind" in node.graph else "scalar"
-            if kind == "sequence":
-                for item in node.value:
-                    self.anchor_node(item)
-            elif kind == "mapping":
-                for key, value in node.value:
-                    self.anchor_node(key)
-                    self.anchor_node(value)
+            match node.graph:
+                case {"kind": "sequence"}:
+                    for item in node.nodes:
+                        self.anchor_node(item)
+                case {"kind": "mapping"}:
+                    for key, value in node.edges:
+                        self.anchor_node(key)
+                        self.anchor_node(value)
 
     def generate_anchor(self, node):
         self.last_anchor_id += 1
@@ -91,23 +91,24 @@ class NxSerializer:
                 self.emit(ScalarEvent(alias, tag, implicit, value,
                     style=style))
             elif kind == "sequence":
-                value = node.graph["value"]
                 implicit = (tag
-                            == self.resolve("sequence", value, True))
+                            == self.resolve("sequence", None, True))
+                flow_style = node.graph.get("flow_style", None)
                 self.emit(SequenceStartEvent(alias, tag, implicit,
-                    flow_style=node.flow_style))
+                    flow_style=flow_style))
                 index = 0
-                for item in value:
+                for item in node.nodes:
                     self.serialize_node(item, node, index)
                     index += 1
                 self.emit(SequenceEndEvent())
             elif kind == "mapping":
-                value = node.graph["value"]
                 implicit = (tag
-                            == self.resolve("mapping", value, True))
+                            == self.resolve("mapping", None, True))
+                flow_style = node.graph.get("flow_style", None)
                 self.emit(MappingStartEvent(alias, tag, implicit,
-                    flow_style=node.flow_style))
-                for key, value in value:
+                    flow_style=flow_style))
+
+                for key, value in node.edges:
                     self.serialize_node(key, node, None)
                     self.serialize_node(value, node, key)
                 self.emit(MappingEndEvent())

@@ -123,7 +123,6 @@ class NxComposer:
         child_nodes = [list(nx.algorithms.topological_sort(n)) for n in child_nodes]
         edges = itertools.pairwise(child_nodes)
         for src, tgt in edges:
-            print(node.nodes, node.edges)
             first_src = src[0]
             first_tgt = tgt[0]
             node.add_edge(first_src, first_tgt)
