@@ -13,6 +13,7 @@ matplotlib = "*"
 types-pyyaml = "*"
 twine = "*"
 build = "*"
+hatch = "*"
 
 [requires]
 python_version = "3.12"

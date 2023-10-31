@@ -1,11 +1,10 @@
-import io
 import networkx as nx
 import yaml
 
-from .constructor import NxSafeConstructor
-from .representer import NxSafeRepresenter
+from src.nx_yaml.constructor import NxSafeConstructor
+from src.nx_yaml.representer import NxSafeRepresenter
 
-from . import NxSafeDumper, NxSafeLoader
+from src.nx_yaml import NxSafeDumper, NxSafeLoader
 
 
 def test_null():

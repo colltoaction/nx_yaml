@@ -1,8 +1,7 @@
 import networkx as nx
-import matplotlib.pyplot as plt
 import yaml
 
-from . import NxSafeLoader
+from src.nx_yaml import NxSafeLoader
 
 
 def test_null():

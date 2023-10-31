@@ -42,6 +42,7 @@ class NxSafeConstructor:
                         None
 
     def construct_scalar(self, node: nx.DiGraph):
+        # assert print(node.nodes, node.edges)
         """node is a digraph with no annotations"""
         if node.edges:
             return None

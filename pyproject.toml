@@ -4,8 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nx_yaml"
-version = "0.0.2"
-description = "A library for loading a YAML Representation Graph into NetworkX"
+version = "0.0.5"
+description = "Fast Representation Graph for PyYAML using NetworkX"
+dependencies = [
+  "pyyaml>=6",
+]
 
 [project.urls]
-"Source" = "https://github.com/colltoaction/nx_yaml"
+"Source" = "https://github.com/yaml-programming/nx_yaml"
