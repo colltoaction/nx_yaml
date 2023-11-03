@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nx_yaml"
-version = "0.0.6"
+version = "0.0.7"
 description = "Fast Representation Graph for PyYAML using NetworkX"
 dependencies = [
   "pyyaml>=6",

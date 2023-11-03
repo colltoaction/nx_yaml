@@ -9,7 +9,6 @@ from yaml.constructor import ConstructorError
 import networkx as nx
 
 class NxSafeConstructor:
-
     def check_data(self):
         # If there are more documents available?
         return self.check_node()
@@ -31,53 +30,67 @@ class NxSafeConstructor:
         return data
 
     def construct_object(self, node: nx.DiGraph):
-        match node.graph.get("kind", None):
-            case "scalar": return self.construct_scalar(node)
-            case "sequence": return self.construct_sequence(node)
-            case "mapping": return self.construct_mapping(node)
-            case None:
-                        # self.construct_sequence(node) or \
-                return self.construct_scalar(node) or \
-                        self.construct_mapping(node) or \
-                        None
+        # TODO should always be a digraph
+        match node:
+            case nx.DiGraph():
+                match node.graph:
+                    case {"kind": "scalar"}:
+                        return self.construct_scalar(node)
+                    case {"kind": "sequence"}:
+                        return self.construct_sequence(node) or \
+                                self.construct_mapping(node)
+                    case {"kind": "mapping"}:
+                        return self.construct_mapping(node)
+                    case _:
+                        # guess the simplest representation
+                        return self.construct_scalar(node) or \
+                                self.construct_sequence(node) or \
+                                self.construct_mapping(node) or \
+                                None
+            case _: return node
 
     def construct_scalar(self, node: nx.DiGraph):
-        # assert print(node.nodes, node.edges)
-        """node is a digraph with no annotations"""
-        if node.edges:
-            return None
-        match tuple(iter(node.nodes)):
-            case ( ): return ''
-            case (value, ): return value
-            case _: return None
+        if nx.is_empty(node):
+            return ''
+        match list(node.edges):
+            case [(s, None)] | [(None, s)]: return s
+            case [_]: return None
+        match list(node.nodes):
+            case [n]: return n
+        return None
 
     def construct_sequence(self, node: nx.DiGraph) -> tuple:
-        edges = map(self.construct_object, node.nodes)
-        edges = itertools.combinations(node.nodes, 2)
-        node.add_edges_from(edges)
-        # TODO recursively construct with
-        # self.construct_object
-        seq = []
-        for n in node.nodes:
-            match n:
-                case nx.DiGraph(kind="scalar", value=v):
-                    seq.append(v)
-                case nx.DiGraph(kind="sequence"):
-                    seq.append(self.construct_sequence(n))
-        return tuple(seq)
+        if not nx.is_directed_acyclic_graph(node):
+            print(node)
+            return None
+        # TODO build paths from roots
+        nodes = tuple(nx.topological_sort(node))
+        if nx.is_path(node, nodes):
+            return nodes
+        return None
+        # quiero un mapping porque left apunta a right")
+        return tuple(
+            self.construct_object(node.subgraph([left] + list(node.successors(left))))
+            for left in nodes
+            if node.in_degree(left) == 0)
 
     def construct_mapping(self, node: nx.DiGraph):
         """"""
-        match list(nx.algorithms.cycles.simple_cycles(node)):
+        match list(node.nodes):
+            case []: return { }
+            case [n]: return { n: n if len(node.edges) == 1 else None }
+        match list(node.edges):
             case []:
-                match list(node.edges):
-                    case []:
-                        return {}
-                    case edges:
-                        return { src: tgt for src, tgt in edges }
-            case cycles:
-                return {
-                    node: node
-                    for cycle in cycles
-                    for node in cycle
-                }
+                return { n: None for n in node.nodes }
+        return {
+            n: self.construct_object(node.subgraph(node.successors(n)))
+            for n in node.nodes
+            if node.out_degree(n) > 0 }
+        # match list(nx.algorithms.cycles.simple_cycles(node)):
+        #     case []:
+        #     case cycles:
+        #         return {
+        #             node: node
+        #             for cycle in cycles
+        #             for node in cycle
+        #         }

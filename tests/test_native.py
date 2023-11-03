@@ -1,10 +1,9 @@
 import networkx as nx
+import matplotlib.pyplot as plt
 import yaml
 
 from src.nx_yaml.constructor import NxSafeConstructor
 from src.nx_yaml.representer import NxSafeRepresenter
-
-from src.nx_yaml import NxSafeDumper, NxSafeLoader
 
 
 def test_null():
@@ -50,11 +49,11 @@ def test_nested_lists():
 
 
 def _test_representation_to_native(expected_yaml, expected_gml):
-    expected_yaml = open(expected_yaml)
-    expected_native = yaml.load(expected_yaml, Loader=NxSafeLoader)
     expected_representation = nx.read_gml(expected_gml)
-
     actual_native = NxSafeConstructor().construct_object(expected_representation)
+    backforth_representation = NxSafeRepresenter().represent_data(actual_native)
+    assert nx.is_isomorphic(expected_representation, backforth_representation)
 
-    assert actual_native == expected_native
-    # assert nx.is_isomorphic(actual_representation, expected_representation)
+    expected_native = yaml.load(open(expected_yaml), Loader=yaml.SafeLoader)
+    actual_representation = NxSafeRepresenter().represent_data(expected_native)
+    assert nx.is_isomorphic(expected_representation, actual_representation)

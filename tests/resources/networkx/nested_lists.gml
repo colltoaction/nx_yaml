@@ -1,6 +1,5 @@
 graph [
     directed 1
-    kind "sequence"
     node [
         id 1
         label "first"
