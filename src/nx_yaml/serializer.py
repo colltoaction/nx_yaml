@@ -1,9 +1,12 @@
 
-__all__ = ['NxSerializer']
+__all__ = ['NxSerializer', 'SerializerError']
 
-from yaml.serializer import SerializerError
-from yaml import AliasEvent, DocumentEndEvent, DocumentStartEvent, MappingEndEvent, MappingStartEvent, ScalarEvent, SequenceEndEvent, SequenceStartEvent, StreamStartEvent, StreamEndEvent
-import networkx as nx
+from yaml.error import YAMLError
+from yaml.events import *
+from yaml.nodes import *
+
+class SerializerError(YAMLError):
+    pass
 
 class NxSerializer:
 
@@ -54,23 +57,19 @@ class NxSerializer:
         self.anchors = {}
         self.last_anchor_id = 0
 
-    def anchor_node(self, node: nx.DiGraph):
+    def anchor_node(self, node):
         if node in self.anchors:
             if self.anchors[node] is None:
                 self.anchors[node] = self.generate_anchor(node)
         else:
             self.anchors[node] = None
-            # TODO
-            match node:
-                case nx.DiGraph():
-                    match node.graph:
-                        case {"kind": "sequence"}:
-                            for item in node.nodes:
-                                self.anchor_node(item)
-                        case {"kind": "mapping"}:
-                            for key, value in node.edges:
-                                self.anchor_node(key)
-                                self.anchor_node(value)
+            if isinstance(node, SequenceNode):
+                for item in node.value:
+                    self.anchor_node(item)
+            elif isinstance(node, MappingNode):
+                for key, value in node.value:
+                    self.anchor_node(key)
+                    self.anchor_node(value)
 
     def generate_anchor(self, node):
         self.last_anchor_id += 1
@@ -83,41 +82,30 @@ class NxSerializer:
         else:
             self.serialized_nodes[node] = True
             self.descend_resolver(parent, index)
-            match node:
-                case nx.DiGraph():
-                    tag = node.graph.get("tag", "tag:yaml.org,2002:str")
-                    match node.graph:
-                        case {"kind": "sequence"}:
-                            implicit = (tag
-                                        == self.resolve("sequence", None, True))
-                            flow_style = node.graph.get("flow_style", None)
-                            self.emit(SequenceStartEvent(alias, tag, implicit,
-                                flow_style=flow_style))
-                            index = 0
-                            for item in node.nodes:
-                                self.serialize_node(item, node, index)
-                                index += 1
-                            self.emit(SequenceEndEvent())
-                        case {"kind": "mapping"}:
-                            implicit = (tag
-                                        == self.resolve("mapping", None, True))
-                            flow_style = node.graph.get("flow_style", None)
-                            self.emit(MappingStartEvent(alias, tag, implicit,
-                                flow_style=flow_style))
-
-                            # TODO
-                            # for key, value in node.edges:
-                            #     self.serialize_node(key, node, None)
-                            #     self.serialize_node(value, node, key)
-                            self.emit(MappingEndEvent())
-                        case _:
-                            value = node.graph.get("value", "")
-                            style = node.graph.get("style", "None")
-                            detected_tag = self.resolve("scalar", value, (True, False))
-                            default_tag = self.resolve("scalar", value, (False, True))
-                            implicit = (tag == detected_tag), (tag == default_tag)
-                            self.emit(ScalarEvent(alias, tag, implicit, value,
-                                style=style))
-                # case _: assert print(node)
+            if isinstance(node, ScalarNode):
+                detected_tag = self.resolve(ScalarNode, node.value, (True, False))
+                default_tag = self.resolve(ScalarNode, node.value, (False, True))
+                implicit = (node.tag == detected_tag), (node.tag == default_tag)
+                self.emit(ScalarEvent(alias, node.tag, implicit, node.value,
+                    style=node.style))
+            elif isinstance(node, SequenceNode):
+                implicit = (node.tag
+                            == self.resolve(SequenceNode, node.value, True))
+                self.emit(SequenceStartEvent(alias, node.tag, implicit,
+                    flow_style=node.flow_style))
+                index = 0
+                for item in node.value:
+                    self.serialize_node(item, node, index)
+                    index += 1
+                self.emit(SequenceEndEvent())
+            elif isinstance(node, MappingNode):
+                implicit = (node.tag
+                            == self.resolve(MappingNode, node.value, True))
+                self.emit(MappingStartEvent(alias, node.tag, implicit,
+                    flow_style=node.flow_style))
+                for key, value in node.value:
+                    self.serialize_node(key, node, None)
+                    self.serialize_node(value, node, key)
+                self.emit(MappingEndEvent())
             self.ascend_resolver()
 
