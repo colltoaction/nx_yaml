@@ -55,6 +55,6 @@ def _test_representation_to_native(expected_yaml, expected_gml):
     actual_representation = NxSafeRepresenter().represent_data(expected_native)
     expected_representation = nx.read_gml(expected_gml)
 
-    print(actual_representation.edges)
-    print(expected_representation.edges)
+    print(actual_representation.edges())
+    print(expected_representation.edges())
     assert nx.is_isomorphic(actual_representation, expected_representation)

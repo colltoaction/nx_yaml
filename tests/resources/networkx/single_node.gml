@@ -1,8 +1,12 @@
 graph [
-    directed 1
+    multigraph 1
+    kind "scalar"
+    value "my node"
     node [
         id 0
-        label
-        "my node"
+        bipartite 0
+        kind "scalar"
+        value "my node"
+        label "my node"
     ]
 ]

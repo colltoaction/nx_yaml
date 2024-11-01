@@ -1,9 +1,9 @@
 
 __all__ = ['NxComposer', 'ComposerError']
 
+import networkx as nx
 from yaml.error import MarkedYAMLError
 from yaml.events import *
-from yaml.nodes import *
 
 class ComposerError(MarkedYAMLError):
     pass
@@ -89,9 +89,12 @@ class NxComposer:
         event = self.get_event()
         tag = event.tag
         if tag is None or tag == '!':
-            tag = self.resolve(ScalarNode, event.value, event.implicit)
-        node = ScalarNode(tag, event.value,
-                event.start_mark, event.end_mark, style=event.style)
+            tag = self.resolve("scalar", event.value, event.implicit)
+    
+        node = nx.Graph(kind="scalar", tag=tag, value=event.value,
+                start_mark=event.start_mark,
+                end_mark=event.end_mark,
+                flow_style=event.style)
         if anchor is not None:
             self.anchors[anchor] = node
         return node
@@ -100,15 +103,17 @@ class NxComposer:
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
-            tag = self.resolve(SequenceNode, None, start_event.implicit)
-        node = SequenceNode(tag, [],
-                start_event.start_mark, None,
+            tag = self.resolve("sequence", None, start_event.implicit)
+    
+        node = nx.Graph(kind="sequence", tag=tag, value=[],
+                start_mark=start_event.start_mark,
+                end_mark=None,
                 flow_style=start_event.flow_style)
         if anchor is not None:
             self.anchors[anchor] = node
         index = 0
         while not self.check_event(SequenceEndEvent):
-            node.value.append(self.compose_node(node, index))
+            node.add_node(self.compose_node(node, index))
             index += 1
         end_event = self.get_event()
         node.end_mark = end_event.end_mark
@@ -118,9 +123,10 @@ class NxComposer:
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
-            tag = self.resolve(MappingNode, None, start_event.implicit)
-        node = MappingNode(tag, [],
-                start_event.start_mark, None,
+            tag = self.resolve("mapping", None, start_event.implicit)
+        node = nx.Graph(kind="mapping", tag=tag, value=[],
+                start_mark=start_event.start_mark,
+                end_mark=None,
                 flow_style=start_event.flow_style)
         if anchor is not None:
             self.anchors[anchor] = node
@@ -132,7 +138,7 @@ class NxComposer:
             #            "found duplicate key", key_event.start_mark)
             item_value = self.compose_node(node, item_key)
             #node.value[item_key] = item_value
-            node.value.append((item_key, item_value))
+            node.add_edge(item_key, item_value)
         end_event = self.get_event()
         node.end_mark = end_event.end_mark
         return node
