@@ -8,6 +8,8 @@ from yaml.error import *
 
 import datetime, copyreg, types, base64, collections
 
+from .nodes import add_data_edge
+
 class RepresenterError(YAMLError):
     pass
 
@@ -78,7 +80,7 @@ class NxSafeRepresenter:
             relabel_label += item.number_of_nodes()
             node = nx.union(node, item)
         for d0, d1 in pairwise(data):
-            self.add_data_edge(node, d0, d1)
+            add_data_edge(node, d0, d1)
 
         if flow_style is None:
             if self.default_flow_style is not None:
@@ -112,7 +114,7 @@ class NxSafeRepresenter:
             if not (item_value.graph.get("kind") == "scalar" and not item_value.graph.get("style")):
                 best_style = False
             node = nx.union_all([node, item_key, item_value])
-            self.add_data_edge(node, item_key, item_value)
+            add_data_edge(node, item_key, item_value)
             relabel_label += 1
         if flow_style is None:
             if self.default_flow_style is not None:
@@ -123,14 +125,3 @@ class NxSafeRepresenter:
 
     def ignore_aliases(self, data):
         return False
-
-    def add_data_edge(self, node, head, tail):
-        edge_id = node.number_of_nodes()
-        node.add_node(edge_id, bipartite=1)
-        for n, b in head.nodes(data="bipartite"):
-            if b == 0:
-                node.add_edge(edge_id, n, direction="head")
-        for n, b in tail.nodes(data="bipartite"):
-            if b == 0:
-                node.add_edge(edge_id, n, direction="tail")
-        return node
