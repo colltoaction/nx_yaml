@@ -56,4 +56,6 @@ def _test_representation_to_native(expected_yaml, expected_gml):
 
     expected_native = yaml.load(open(expected_yaml), Loader=yaml.SafeLoader)
     actual_representation = NxSafeRepresenter().represent_data(expected_native)
+    print(expected_native)
+    print(actual_representation.nodes(data="value"))
     assert nx.is_isomorphic(expected_representation, actual_representation)

@@ -5,7 +5,7 @@ from src.nx_yaml import NxSafeLoader
 
 
 def test_null():
-    expected_presentation = "tests/resources/yaml/empty.yaml"
+    expected_presentation = "tests/resources/yaml/null.yaml"
     expected_representation = "tests/resources/networkx/null.gml"
     _test_presentation_to_representation(expected_presentation, expected_representation)
 

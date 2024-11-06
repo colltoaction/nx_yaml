@@ -12,6 +12,8 @@ from yaml.error import *
 
 import collections.abc, datetime, base64, binascii, re, sys, types
 
+from nx_yaml.nodes import iter_sequence
+
 class ConstructorError(MarkedYAMLError):
     pass
 
@@ -70,12 +72,14 @@ class NxSafeConstructor:
             raise ConstructorError(None, None,
                     "found unconstructable recursive node", node.start_mark)
         self.recursive_objects[node] = None
-        if node.graph["kind"] == "scalar":
-            data = self.construct_scalar(node)
-        elif node.graph["kind"] == "sequence":
-            data = self.construct_sequence(node)
-        elif node.graph["kind"] == "mapping":
-            data = self.construct_mapping(node)
+        data = node
+        if isinstance(data, nx.Graph):
+            if node.graph["kind"] == "scalar":
+                data = self.construct_scalar(node)
+            elif node.graph["kind"] == "sequence":
+                data = self.construct_sequence(node)
+            elif node.graph["kind"] == "mapping":
+                data = self.construct_mapping(node)
         if isinstance(data, types.GeneratorType):
             generator = data
             data = next(generator)
@@ -95,7 +99,7 @@ class NxSafeConstructor:
             raise ConstructorError(None, None,
                     "expected a scalar node, but found %s" % node.id,
                     node.start_mark)
-        return node.graph["value"]
+        return node.nodes[0]["value"]
 
     def construct_sequence(self, node, deep=False):
         if not node.graph["kind"] == "sequence":
@@ -104,19 +108,24 @@ class NxSafeConstructor:
                     node.start_mark)
         # read bipartite graph structure
         # which allows us to encode higher-order graphs 
-        nodes = [n for n, b in node.nodes(data="bipartite") if b == 0]
-        # 
-        return [self.construct_object(child, deep=deep)
-                for child in nodes]
+        return (
+            self.construct_object(child, deep=deep)
+            for child in iter_sequence(node, 0))
 
     def construct_mapping(self, node, deep=False):
         if not node.graph["kind"] == "mapping":
             raise ConstructorError(None, None,
                     "expected a mapping node, but found %s" % node.id,
                     node.start_mark)
+        # hyperedges = [
+        #     e for e, d in node.nodes(data=True)
+        #     if d["bipartite"] == 1]
+        # node.subgraph()
+        # node.edge_subgraph()
         mapping = {}
         for key_node, value_node in node.edges():
-            # TODO
+            # TODO build mapping recursively.
+            # identify root node
             key = self.construct_object(key_node, deep=deep)
             if not isinstance(key, collections.abc.Hashable):
                 raise ConstructorError("while constructing a mapping", node.start_mark,

@@ -48,6 +48,8 @@ class NxSafeRepresenter:
             node = self.represent_mapping('tag:yaml.org,2002:map', data)
         elif data_types[0] == list:
             node = self.represent_sequence('tag:yaml.org,2002:seq', data)
+        elif data is None:
+            node = self.represent_scalar('tag:yaml.org,2002:str', None)
         else:
             node = self.represent_scalar('tag:yaml.org,2002:str', str(data))
                     
@@ -58,29 +60,37 @@ class NxSafeRepresenter:
     def represent_scalar(self, tag, value, style=None):
         if style is None:
             style = self.default_style
-        node = nx.MultiGraph(kind="scalar", tag=tag, value=value, style=style)
-        node.add_node(0, bipartite=0, tag=tag, value=value)
+        node = nx.MultiGraph(kind="scalar")
+        node.add_node(0, bipartite=1, kind="scalar", tag=tag, style=style)
+        if value:
+            node.add_node(1, bipartite=0, value=value)
+            node.add_edge(0, 1, direction="head")
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         return node
 
     def represent_sequence(self, tag, sequence, flow_style=None):
-        node = nx.MultiGraph(kind="sequence", tag=tag, flow_style=flow_style)
+        node = nx.MultiGraph(kind="sequence")
+        node.add_node(0, bipartite=1, kind="sequence", tag=tag, flow_style=flow_style)
+        relabel_label = 1
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         best_style = True
-        relabel_label = 0
         data = []
         for item in sequence:
-            item = nx.relabel.convert_node_labels_to_integers(
-                self.represent_data(item), relabel_label)
+            item = self.represent_data(item)
+            item = nx.relabel.convert_node_labels_to_integers(item, relabel_label)
+            scalars = item[relabel_label]
             if not (item.graph.get("kind") == "scalar" and not item.graph.get("style")):
                 best_style = False
-            data.append(item)
+            data.append(relabel_label)
             relabel_label += item.number_of_nodes()
             node = nx.union(node, item)
-        for d0, d1 in pairwise(data):
+            # TODO each item is linked from the root
+            # as well as pairwise
+        for d0, d1 in pairwise([0] + data):
             add_data_edge(node, d0, d1)
+            node.add_edge(d0, d1, direction="head")
 
         if flow_style is None:
             if self.default_flow_style is not None:
@@ -90,7 +100,9 @@ class NxSafeRepresenter:
         return node
 
     def represent_mapping(self, tag, mapping, flow_style=None):
-        node = nx.MultiGraph(kind="mapping", tag=tag, flow_style=flow_style)
+        node = nx.MultiGraph(kind="mapping")
+        node.add_node(0, bipartite=1, kind="mapping", tag=tag, flow_style=flow_style)
+        relabel_label = 1
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         best_style = True
@@ -101,21 +113,28 @@ class NxSafeRepresenter:
                     mapping = sorted(mapping)
                 except TypeError:
                     pass
-        relabel_label = 0
-        for item_key, item_value in enumerate(mapping):
-            item_key = nx.relabel.convert_node_labels_to_integers(
-                self.represent_data(item_key), relabel_label)
+        for item_key, item_value in mapping:
+            root_key = relabel_label
+            item_key = self.represent_data(item_key)
+            item_key = nx.relabel.convert_node_labels_to_integers(item_key, root_key)
             relabel_label += item_key.number_of_nodes()
-            item_value = nx.relabel.convert_node_labels_to_integers(
-                self.represent_data(item_value), relabel_label)
+            value_key = relabel_label
+            item_value = self.represent_data(item_value)
+            item_value = nx.relabel.convert_node_labels_to_integers(item_value, value_key)
             relabel_label += item_value.number_of_nodes()
             if not (item_key.graph.get("kind") == "scalar" and not item_key.graph.get("style")):
                 best_style = False
             if not (item_value.graph.get("kind") == "scalar" and not item_value.graph.get("style")):
                 best_style = False
             node = nx.union_all([node, item_key, item_value])
-            add_data_edge(node, item_key, item_value)
+            edge_key = relabel_label
+            node.add_node(edge_key, bipartite=1)
             relabel_label += 1
+            for s in node[root_key]:
+                node.add_edge(0, s, direction="head")
+                node.add_edge(edge_key, s, direction="head")
+            for s in node[value_key]:
+                node.add_edge(edge_key, s, direction="tail")
         if flow_style is None:
             if self.default_flow_style is not None:
                 node.flow_style = self.default_flow_style

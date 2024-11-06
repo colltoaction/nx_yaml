@@ -3,22 +3,22 @@ graph [
     kind "mapping"
     node [
         id 0
-        kind "scalar"
+        label 0
         bipartite 0
+        kind "scalar"
         value "left node"
-        label "left node"
     ]
     node [
         id 1
-        kind "scalar"
+        label 1
         bipartite 0
+        kind "scalar"
         value "right node"
-        label "right node"
     ]
     node [
         id 2
+        label 2
         bipartite 1
-        label "edge"
     ]
     edge[
         source 0

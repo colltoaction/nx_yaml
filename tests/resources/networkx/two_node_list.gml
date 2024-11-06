@@ -3,17 +3,17 @@ graph [
     kind "sequence"
     node [
         id 0
+        label 0
         bipartite 0
         kind "scalar"
         value "left node"
-        label "left node"
     ]
     node [
         id 1
+        label 1
         bipartite 0
         kind "scalar"
         value "right node"
-        label "right node"
     ]
     node [
         id 2
