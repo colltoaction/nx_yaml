@@ -2,13 +2,12 @@
 __all__ = ['BaseRepresenter', 'NxSafeRepresenter',
     'RepresenterError']
 
-from itertools import pairwise
+from itertools import pairwise, product
 import networkx as nx
 from yaml.error import *
 
 import datetime, copyreg, types, base64, collections
 
-from .nodes import add_data_edge
 
 class RepresenterError(YAMLError):
     pass
@@ -76,21 +75,20 @@ class NxSafeRepresenter:
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         best_style = True
-        data = []
+        item_labels = []
         for item in sequence:
             item = self.represent_data(item)
-            item = nx.relabel.convert_node_labels_to_integers(item, relabel_label)
-            scalars = item[relabel_label]
+            item_label = relabel_label
+            item = nx.relabel.convert_node_labels_to_integers(item, item_label)
             if not (item.graph.get("kind") == "scalar" and not item.graph.get("style")):
                 best_style = False
-            data.append(relabel_label)
             relabel_label += item.number_of_nodes()
             node = nx.union(node, item)
-            # TODO each item is linked from the root
-            # as well as pairwise
-        for d0, d1 in pairwise([0] + data):
-            add_data_edge(node, d0, d1)
-            node.add_edge(d0, d1, direction="head")
+            item_labels.append(item_label)
+        for u, v in pairwise(item_labels):
+            for u2, v2 in product(node[u], node[v]):
+                node.add_edge(u, u2, direction="head")
+                node.add_edge(u, v2, direction="tail")
 
         if flow_style is None:
             if self.default_flow_style is not None:
@@ -127,14 +125,9 @@ class NxSafeRepresenter:
             if not (item_value.graph.get("kind") == "scalar" and not item_value.graph.get("style")):
                 best_style = False
             node = nx.union_all([node, item_key, item_value])
-            edge_key = relabel_label
-            node.add_node(edge_key, bipartite=1)
-            relabel_label += 1
-            for s in node[root_key]:
-                node.add_edge(0, s, direction="head")
-                node.add_edge(edge_key, s, direction="head")
-            for s in node[value_key]:
-                node.add_edge(edge_key, s, direction="tail")
+            for u, v in product(node[root_key], node[value_key]):
+                node.add_edge(0, u, direction="head")
+                node.add_edge(0, v, direction="tail")
         if flow_style is None:
             if self.default_flow_style is not None:
                 node.flow_style = self.default_flow_style

@@ -108,7 +108,7 @@ class NxSafeConstructor:
                     node.start_mark)
         # read bipartite graph structure
         # which allows us to encode higher-order graphs 
-        return (
+        return tuple(
             self.construct_object(child, deep=deep)
             for child in iter_sequence(node, 0))
 
@@ -117,19 +117,38 @@ class NxSafeConstructor:
             raise ConstructorError(None, None,
                     "expected a mapping node, but found %s" % node.id,
                     node.start_mark)
-        # hyperedges = [
-        #     e for e, d in node.nodes(data=True)
-        #     if d["bipartite"] == 1]
-        # node.subgraph()
-        # node.edge_subgraph()
-        mapping = {}
-        for key_node, value_node in node.edges():
-            # TODO build mapping recursively.
-            # identify root node
-            key = self.construct_object(key_node, deep=deep)
-            if not isinstance(key, collections.abc.Hashable):
-                raise ConstructorError("while constructing a mapping", node.start_mark,
-                        "found unhashable key", key_node.start_mark)
-            value = self.construct_object(value_node, deep=deep)
-            mapping[key] = value
+        mapping = self.construct_object_at_hyperedge(node, 0)
         return mapping
+
+    def construct_object_at_hyperedge(self, node: nx.MultiGraph, edge=0):
+        # TODO walking the hypergraph with a chosen root recursively
+        # or all at once generically.
+        # the object is the whole graph
+        # and we can't easily extract subgraphs as objects.
+        # e.g there can be loops back to the root.
+        root = node.nodes[edge]
+        if root["kind"] == "scalar":
+            scalar = node[edge]
+            if scalar:
+                return node.nodes[scalar[0]].get("value")
+            return None
+        if root["kind"] == "sequence":
+            ob = []
+            for n in node[edge]:
+                for u, v, d in node.edges(n, data="direction"):
+                    if n == u:
+                        ob.append(self.construct_object_at_hyperedge(node, v))
+                    elif n == v:
+                        ob.append(self.construct_object_at_hyperedge(node, u))
+            return tuple(ob)
+        if root["kind"] == "mapping":
+            ob = {}
+            for key in node[edge]:
+                for u, v, d in node.edges(key, data="direction"):
+                    if u != 0 and v != 0:
+                        if u == key:
+                            value = self.construct_object_at_hyperedge(node, v)
+                        elif v == key:
+                            value = self.construct_object_at_hyperedge(node, u)
+                        ob[key] = value
+            return frozenset(ob.items())
