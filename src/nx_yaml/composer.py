@@ -132,8 +132,9 @@ class NxComposer:
         for u, v in pairwise(item_labels):
             u_tail = [e for _, e, d in node.edges(u, data="direction") if d == "tail"]
             v_head = [e for _, e, d in node.edges(v, data="direction") if d == "head"]
-            for u2, v2 in product(u_tail, v_head):
+            for u2 in u_tail:
                 node.add_edge(u, u2, direction="head")
+            for v2 in v_head:
                 node.add_edge(u, v2, direction="tail")
         end_event = self.get_event()
         node.end_mark = end_event.end_mark
