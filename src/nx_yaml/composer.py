@@ -130,7 +130,9 @@ class NxComposer:
             relabel_label += item.number_of_nodes()
             node = nx.union(node, item)
         for u, v in pairwise(item_labels):
-            for u2, v2 in product(node[u], node[v]):
+            u_tail = [e for _, e, d in node.edges(u, data="direction") if d == "tail"]
+            v_head = [e for _, e, d in node.edges(v, data="direction") if d == "head"]
+            for u2, v2 in product(u_tail, v_head):
                 node.add_edge(u, u2, direction="head")
                 node.add_edge(u, v2, direction="tail")
         end_event = self.get_event()
@@ -167,8 +169,7 @@ class NxComposer:
             node = nx.union_all([node, item_key, item_value])
             for u in node[root_key]:
                 node.add_edge(0, u, direction="head")
-            for u, v in product(node[root_key], node[value_key]):
-                node.add_edge(root_key, u, direction="head")
+            for v in node[value_key]:
                 node.add_edge(root_key, v, direction="tail")
         end_event = self.get_event()
         node.end_mark = end_event.end_mark
