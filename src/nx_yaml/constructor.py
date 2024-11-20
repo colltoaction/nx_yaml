@@ -12,8 +12,6 @@ from yaml.error import *
 
 import collections.abc, datetime, base64, binascii, re, sys, types
 
-from nx_yaml.nodes import iter_sequence
-
 class ConstructorError(MarkedYAMLError):
     pass
 
@@ -99,18 +97,16 @@ class NxSafeConstructor:
             raise ConstructorError(None, None,
                     "expected a scalar node, but found %s" % node.id,
                     node.start_mark)
-        return node.nodes[0]["value"]
+        scalar = self.construct_object_at_hyperedge(node, 0)
+        return scalar
 
     def construct_sequence(self, node, deep=False):
         if not node.graph["kind"] == "sequence":
             raise ConstructorError(None, None,
                     "expected a sequence node, but found %s" % node.id,
                     node.start_mark)
-        # read bipartite graph structure
-        # which allows us to encode higher-order graphs 
-        return tuple(
-            self.construct_object(child, deep=deep)
-            for child in iter_sequence(node, 0))
+        sequence = self.construct_object_at_hyperedge(node, 0)
+        return sequence
 
     def construct_mapping(self, node, deep=False):
         if not node.graph["kind"] == "mapping":
@@ -127,28 +123,40 @@ class NxSafeConstructor:
         # and we can't easily extract subgraphs as objects.
         # e.g there can be loops back to the root.
         root = node.nodes[edge]
+        assert root["bipartite"] == 0
+        root_neighbors = node[edge]
+        assert all(node.nodes[n]["bipartite"] == 1 for n in root_neighbors)
         if root["kind"] == "scalar":
-            scalar = node[edge]
-            if scalar:
-                return node.nodes[scalar[0]].get("value")
-            return None
+            return root["value"]
         if root["kind"] == "sequence":
             ob = []
-            for n in node[edge]:
-                for u, v, d in node.edges(n, data="direction"):
-                    if n == u:
-                        ob.append(self.construct_object_at_hyperedge(node, v))
-                    elif n == v:
-                        ob.append(self.construct_object_at_hyperedge(node, u))
+            assert len(root_neighbors) == 1
+            pair_node = next(iter(root_neighbors))
+            while pair_node:
+                pair_edges = node.edges(pair_node, data="direction")
+                assert len(pair_edges) == 2
+                pair_edges = iter(pair_edges)
+                r1, t1, d1 = next(pair_edges)
+                assert (r1, d1) == (pair_node, "head")
+                r2, t2, d2 = next(pair_edges)
+                assert (r2, d2) == (pair_node, "tail")
+                value = self.construct_object_at_hyperedge(node, t2)
+                ob.append(value)
+                t2_neighbors = iter(node[t2])
+                assert pair_node == next(t2_neighbors)
+                pair_node = next(t2_neighbors, None)
             return tuple(ob)
         if root["kind"] == "mapping":
             ob = {}
-            for key in node[edge]:
-                for u, v, d in node.edges(key, data="direction"):
-                    if u != 0 and v != 0:
-                        if u == key:
-                            value = self.construct_object_at_hyperedge(node, v)
-                        elif v == key:
-                            value = self.construct_object_at_hyperedge(node, u)
-                        ob[key] = value
+            for pair_node in root_neighbors:
+                    # if edge not in (k2, v2) and d2 == "tail":
+                pair_edges = node.edges(pair_node)
+                assert len(pair_edges) == 3
+                pair_edges = iter(pair_edges)
+                next(pair_edges) # root
+                _, k = next(pair_edges)
+                _, v = next(pair_edges)
+                key = self.construct_object_at_hyperedge(node, k)
+                value = self.construct_object_at_hyperedge(node, v)
+                ob[key] = value
             return frozenset(ob.items())

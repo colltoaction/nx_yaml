@@ -43,9 +43,9 @@ class NxSafeRepresenter:
             #self.represented_objects[alias_key] = None
             self.object_keeper.append(data)
         data_types = type(data).__mro__
-        if data_types[0] == dict:
+        if data_types[0] in (dict, frozenset):
             node = self.represent_mapping('tag:yaml.org,2002:map', data)
-        elif data_types[0] == list:
+        elif data_types[0] in (list, tuple):
             node = self.represent_sequence('tag:yaml.org,2002:seq', data)
         elif data is None:
             node = self.represent_scalar('tag:yaml.org,2002:str', None)
@@ -60,35 +60,33 @@ class NxSafeRepresenter:
         if style is None:
             style = self.default_style
         node = nx.MultiGraph(kind="scalar")
-        node.add_node(0, bipartite=1, kind="scalar", tag=tag, style=style)
-        if value:
-            node.add_node(1, bipartite=0, value=value)
-            node.add_edge(0, 1, direction="head")
+        node.add_node(0, bipartite=0, kind="scalar", tag=tag, value=value, style=style)
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         return node
 
     def represent_sequence(self, tag, sequence, flow_style=None):
         node = nx.MultiGraph(kind="sequence")
-        node.add_node(0, bipartite=1, kind="sequence", tag=tag, flow_style=flow_style)
+        node.add_node(0, bipartite=0, kind="sequence", tag=tag, flow_style=flow_style)
         relabel_label = 1
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
         best_style = True
-        item_labels = []
+        prev_label = 0
         for item in sequence:
             item = self.represent_data(item)
             item_label = relabel_label
             item = nx.relabel.convert_node_labels_to_integers(item, item_label)
             if not (item.graph.get("kind") == "scalar" and not item.graph.get("style")):
                 best_style = False
-            relabel_label += item.number_of_nodes()
             node = nx.union(node, item)
-            item_labels.append(item_label)
-        for u, v in pairwise(item_labels):
-            for u2, v2 in product(node[u], node[v]):
-                node.add_edge(u, u2, direction="head")
-                node.add_edge(u, v2, direction="tail")
+            relabel_label += item.number_of_nodes()
+            pair_label = relabel_label
+            relabel_label += 1
+            node.add_node(pair_label, bipartite=1)
+            node.add_edge(pair_label, prev_label, direction="head")
+            node.add_edge(pair_label, item_label, direction="tail")
+            prev_label = item_label
 
         if flow_style is None:
             if self.default_flow_style is not None:
@@ -99,7 +97,7 @@ class NxSafeRepresenter:
 
     def represent_mapping(self, tag, mapping, flow_style=None):
         node = nx.MultiGraph(kind="mapping")
-        node.add_node(0, bipartite=1, kind="mapping", tag=tag, flow_style=flow_style)
+        node.add_node(0, bipartite=0, kind="mapping", tag=tag, flow_style=flow_style)
         relabel_label = 1
         if self.alias_key is not None:
             self.represented_objects[self.alias_key] = node
@@ -112,22 +110,25 @@ class NxSafeRepresenter:
                 except TypeError:
                     pass
         for item_key, item_value in mapping:
-            root_key = relabel_label
+            key_label = relabel_label
             item_key = self.represent_data(item_key)
-            item_key = nx.relabel.convert_node_labels_to_integers(item_key, root_key)
+            item_key = nx.relabel.convert_node_labels_to_integers(item_key, key_label)
             relabel_label += item_key.number_of_nodes()
-            value_key = relabel_label
+            value_label = relabel_label
             item_value = self.represent_data(item_value)
-            item_value = nx.relabel.convert_node_labels_to_integers(item_value, value_key)
+            item_value = nx.relabel.convert_node_labels_to_integers(item_value, value_label)
             relabel_label += item_value.number_of_nodes()
             if not (item_key.graph.get("kind") == "scalar" and not item_key.graph.get("style")):
                 best_style = False
             if not (item_value.graph.get("kind") == "scalar" and not item_value.graph.get("style")):
                 best_style = False
             node = nx.union_all([node, item_key, item_value])
-            for u, v in product(node[root_key], node[value_key]):
-                node.add_edge(0, u, direction="head")
-                node.add_edge(0, v, direction="tail")
+            pair_label = relabel_label
+            relabel_label += 1
+            node.add_node(pair_label, bipartite=1)
+            node.add_edge(0, pair_label, direction="head")
+            node.add_edge(pair_label, key_label, direction="head")
+            node.add_edge(pair_label, value_label, direction="tail")
         if flow_style is None:
             if self.default_flow_style is not None:
                 node.flow_style = self.default_flow_style

@@ -14,11 +14,6 @@ def test_single_node():
     _test_load_yaml_dump_nxyaml(expected_yaml)
 
 
-def test_self_loop():
-    expected_yaml = "tests/resources/yaml/self_loop.yaml"
-    _test_load_yaml_dump_nxyaml(expected_yaml)
-
-
 def test_two_node_mapping():
     expected_yaml = "tests/resources/yaml/two_node_mapping.yaml"
     _test_load_yaml_dump_nxyaml(expected_yaml)

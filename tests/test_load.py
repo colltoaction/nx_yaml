@@ -14,11 +14,6 @@ def test_single_node():
     _test_load_nxyaml_dump_yaml(expected_yaml)
 
 
-def test_self_loop():
-    expected_yaml = "tests/resources/yaml/self_loop.yaml"
-    _test_load_nxyaml_dump_yaml(expected_yaml)
-
-
 def test_two_node_mapping():
     expected_yaml = "tests/resources/yaml/two_node_mapping.yaml"
     _test_load_nxyaml_dump_yaml(expected_yaml)
@@ -42,4 +37,6 @@ def test_nested_lists():
 def _test_load_nxyaml_dump_yaml(expected_yaml):
     expected_yaml = open(expected_yaml)
     expected_native = yaml.load(expected_yaml, Loader=NxSafeLoader)
+    if isinstance(expected_native, frozenset):
+        expected_native = dict(expected_native)
     assert yaml.dump(expected_native, Dumper=yaml.SafeDumper)

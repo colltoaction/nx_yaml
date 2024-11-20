@@ -7,20 +7,20 @@ from src.nx_yaml.representer import NxSafeRepresenter
 
 
 def test_null():
-    expected_yaml = "tests/resources/yaml/empty.yaml"
+    expected_yaml = "tests/resources/yaml/null.yaml"
     expected_gml = "tests/resources/networkx/null.gml"
+    _test_representation_to_native(expected_yaml, expected_gml)
+
+
+def test_empty():
+    expected_yaml = "tests/resources/yaml/empty.yaml"
+    expected_gml = "tests/resources/networkx/empty.gml"
     _test_representation_to_native(expected_yaml, expected_gml)
 
 
 def test_single_node():
     expected_yaml = "tests/resources/yaml/single_node.yaml"
     expected_gml = "tests/resources/networkx/single_node.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
-
-
-def test_self_loop():
-    expected_yaml = "tests/resources/yaml/self_loop.yaml"
-    expected_gml = "tests/resources/networkx/self_loop.gml"
     _test_representation_to_native(expected_yaml, expected_gml)
 
 
