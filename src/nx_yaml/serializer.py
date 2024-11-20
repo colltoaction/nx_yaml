@@ -85,14 +85,12 @@ class NxSerializer:
             self.serialized_nodes[node] = True
             self.descend_resolver(parent, index)
             if node.graph.get("kind") == "scalar":
-                # TODO iterate according to representer
+                # TODO
                 detected_tag = self.resolve("scalar", node, (True, False))
-                # TODO iterate according to representer
                 default_tag = self.resolve("scalar", node, (False, True))
-                implicit = (node.graph.get("tag") == detected_tag), (node.graph.get("tag") == default_tag)
-                # TODO iterate according to representer
+                implicit = True, True
 
-                self.emit(ScalarEvent(alias, node.graph.get("tag"), implicit, node.graph.get("tag"),
+                self.emit(ScalarEvent(alias, node.graph.get("tag"), implicit, node.nodes[0].get("value"),
                     style=node.graph.get("style")))
             elif node.graph.get("kind") == "sequence":
                 implicit = (node.graph.get("tag")
