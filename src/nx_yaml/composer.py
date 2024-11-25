@@ -37,7 +37,7 @@ class NxComposer:
         if not self.check_event(StreamEndEvent):
             document = self.compose_document()
         else:
-            document = nx.MultiGraph(kind="scalar")
+            document = nx.MultiGraph(**{"kind": "scalar", "network-type": "directed"})
             document.add_node(0, bipartite=1, kind="scalar", value="")
 
         # Ensure that the stream contains no more documents.
@@ -96,16 +96,13 @@ class NxComposer:
         if tag is None or tag == '!':
             tag = self.resolve("scalar", event.value, event.implicit)
 
-        node = nx.MultiGraph(kind="scalar")
-        node.add_node(0, bipartite=1, kind="scalar", tag=tag, value=event.value,
+        node = nx.MultiGraph(**{"kind": "scalar", "network-type": "directed"})
+        node.add_node(0, bipartite=0, kind="scalar", tag=tag, value=event.value,
                 start_mark=event.start_mark,
                 end_mark=event.end_mark,
                 flow_style=event.style)
-        node.add_node(1, bipartite=0, kind="scalar", tag=tag, value=event.value,
-                start_mark=event.start_mark,
-                end_mark=event.end_mark,
-                flow_style=event.style)
-        node.add_edge(0, 1)
+        # node.add_node(1, bipartite=1, value=event.value)
+        # node.add_edge(0, 1, direction="tail")
         if anchor is not None:
             self.anchors[anchor] = node
         return node
@@ -116,16 +113,18 @@ class NxComposer:
         if tag is None or tag == '!':
             tag = self.resolve("sequence", None, start_event.implicit)
     
-        node = nx.MultiGraph(kind="sequence")
-        node.add_node(0, bipartite=1, kind="sequence", tag=tag,
+        node = nx.MultiGraph(**{"kind": "sequence", "network-type": "directed"})
+        node.add_node(0, bipartite=0, kind="sequence", tag=tag,
                 start_mark=start_event.start_mark,
                 end_mark=None,
                 flow_style=start_event.flow_style)
+        # node.add_node(1, bipartite=1)
+        # node.add_edge(0, 1, direction="head")
         if anchor is not None:
             self.anchors[anchor] = node
         index = 0
-        relabel_label = 1
-        prev_label = 0
+        relabel_label = 2
+        prev_labels = [1]
         while not self.check_event(SequenceEndEvent):
             index += 1
             item_label = relabel_label
@@ -133,12 +132,11 @@ class NxComposer:
                 self.compose_node(node, index), item_label)
             node = nx.union(node, item)
             relabel_label += item.number_of_nodes()
-            pair_label = relabel_label
-            node.add_node(pair_label, bipartite=0)
-            node.add_edge(pair_label, prev_label, direction="head")
-            node.add_edge(pair_label, item_label, direction="tail")
-            relabel_label += 1
-            prev_label = item_label
+            for l in prev_labels:
+                node.add_edge(l, item_label, direction="tail")
+            # node.add_edge(prev_label, item_label, direction="tail")
+            # prev_label = item_label
+            prev_labels = item[item_label]
         end_event = self.get_event()
         node.end_mark = end_event.end_mark
         return node
@@ -148,19 +146,20 @@ class NxComposer:
         tag = start_event.tag
         if tag is None or tag == '!':
             tag = self.resolve("mapping", None, start_event.implicit)
-        node = nx.MultiGraph(kind="mapping")
-        node.add_node(0, bipartite=1, kind="mapping", tag=tag,
+        node = nx.MultiGraph(**{"kind": "mapping", "network-type": "directed"})
+        node.add_node(0, bipartite=0, kind="mapping", tag=tag,
                 start_mark=start_event.start_mark,
                 end_mark=None,
                 flow_style=start_event.flow_style)
+        node.add_node(1, bipartite=1)
+        node.add_edge(0, 1, direction="tail")
         if anchor is not None:
             self.anchors[anchor] = node
-        relabel_label = 1
+        relabel_label = 2
         key_labels = []
         while not self.check_event(MappingEndEvent):
             #key_event = self.peek_event()
             key_label = relabel_label
-            key_labels.append(key_label)
             item_key = nx.relabel.convert_node_labels_to_integers(
                 self.compose_node(node, None), key_label)
             relabel_label += item_key.number_of_nodes()
@@ -172,25 +171,35 @@ class NxComposer:
             #            "found duplicate key", key_event.start_mark)
             #node.value[item_key] = item_value
             node = nx.union(node, item_key)
-            for kn in item_key[key_label]:
-                node.add_edge(0, kn, direction="tail")
+            # node.add_edge(0, key_label + 1, direction="tail")
+            node.add_edge(1, key_label,direction="head")
+            # for l in item_key[key_label]:
+            #     node.add_edge(0, l, direction="tail")
             if not (item_value.nodes[value_label]["kind"] == "scalar" and not item_value.nodes[value_label].get("value")):
                 node = nx.union(node, item_value)
                 relabel_label += item_value.number_of_nodes()
-                pair_label = relabel_label
-                relabel_label += 1
-                node.add_node(pair_label, bipartite=0)
-                node.add_edge(pair_label, key_label, direction="head")
-                node.add_edge(pair_label, value_label, direction="tail")
+                # node.add_edge(1, key_label, direction="tail")
+                # node.add_edge(key_label + 1, value_label, direction="tail")
+                for l in item_key[key_label]:
+                    for l2 in item_key[l]:
+                        if l2 != key_label:
+                            node.add_edge(value_label + 1, l2, direction="tail")
+                # for l in item_value[value_label]:
+                #     node.add_edge(key_label, l, direction="tail")
+            key_labels.append(key_label)
             # TODO if head or tail
             # u_tail = [e for _, e, d in node.edges(u, data="direction") if d == "tail"]
-            # v_head = [e for _, e, d in node.edges(v, data="direction") if d == "head"]
-        # if key_labels:
-        #     node.add_node(relabel_label, bipartite=0)
-        #     node.add_edge(relabel_label, 0, direction="head")
+        #     # v_head = [e for _, e, d in node.edges(v, data="direction") if d == "head"]
+        # if not key_labels:
+        #     node.add_edge(0, 1, direction="tail")
+        #     node.add_node(relabel_label, bipartite=1)
+        #     node.add_edge(relabel_label, 0, direction="tail")
         #     relabel_label += 1
-        #     node.add_edge(k1, relabel_label, direction="head")
-        #     node.add_edge(k2, relabel_label, direction="tail")
+        # for k1, k2 in combinations(key_labels, 2):
+        #     node.add_edge(k1, k2 + 1, direction="tail")
+        #     node.add_edge(k2, k1 + 1, direction="tail")
+        # for k1 in key_labels:
+        #     node.add_edge(k1 + 1, 0, direction="tail")
         end_event = self.get_event()
         node.end_mark = end_event.end_mark
         return node
