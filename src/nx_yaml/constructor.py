@@ -12,6 +12,8 @@ from yaml.error import *
 
 import collections.abc, datetime, base64, binascii, re, sys, types
 
+from .nodes import ScalarNode, MappingNode, SequenceNode
+
 class ConstructorError(MarkedYAMLError):
     pass
 
@@ -71,13 +73,12 @@ class NxSafeConstructor:
                     "found unconstructable recursive node", node.start_mark)
         self.recursive_objects[node] = None
         data = node
-        if isinstance(data, nx.Graph):
-            if node.graph["kind"] == "scalar":
-                data = self.construct_scalar(node)
-            elif node.graph["kind"] == "sequence":
-                data = self.construct_sequence(node)
-            elif node.graph["kind"] == "mapping":
-                data = self.construct_mapping(node)
+        if isinstance(data, ScalarNode):
+            data = self.construct_scalar(node)
+        if isinstance(data, MappingNode):
+            data = self.construct_mapping(node)
+        if isinstance(data, SequenceNode):
+            data = self.construct_sequence(node)
         if isinstance(data, types.GeneratorType):
             generator = data
             data = next(generator)
@@ -93,35 +94,30 @@ class NxSafeConstructor:
         return data
 
     def construct_scalar(self, node):
-        if not node.graph["kind"] == "scalar":
+        if not isinstance(node, ScalarNode):
             raise ConstructorError(None, None,
                     "expected a scalar node, but found %s" % node.id,
                     node.start_mark)
-        scalar = self.construct_object_at_hyperedge(node, 0)
+        scalar = self.construct_object_at_hyperedge(node.graph, 0)
         return scalar
 
     def construct_sequence(self, node, deep=False):
-        if not node.graph["kind"] == "sequence":
+        if not isinstance(node, SequenceNode):
             raise ConstructorError(None, None,
                     "expected a sequence node, but found %s" % node.id,
                     node.start_mark)
-        sequence = self.construct_object_at_hyperedge(node, 0)
+        sequence = self.construct_object_at_hyperedge(node.graph, 0)
         return sequence
 
     def construct_mapping(self, node, deep=False):
-        if not node.graph["kind"] == "mapping":
+        if not isinstance(node, MappingNode):
             raise ConstructorError(None, None,
                     "expected a mapping node, but found %s" % node.id,
                     node.start_mark)
-        mapping = self.construct_object_at_hyperedge(node, 0)
+        mapping = self.construct_object_at_hyperedge(node.graph, 0)
         return mapping
 
     def construct_object_at_hyperedge(self, node: nx.MultiGraph, edge=0):
-        # TODO walking the hypergraph with a chosen root recursively
-        # or all at once generically.
-        # the object is the whole graph
-        # and we can't easily extract subgraphs as objects.
-        # e.g there can be loops back to the root.
         root = node.nodes[edge]
         assert root["bipartite"] == 0
         root_neighbors = node[edge]

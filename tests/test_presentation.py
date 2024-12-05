@@ -12,8 +12,8 @@ def test_null():
 
 def test_empty():
     expected_presentation = "tests/resources/yaml/empty.yaml"
-    expected_representation = "tests/resources/networkx/empty.gml"
-    _test_presentation_to_representation(expected_presentation, expected_representation)
+    expected_presentation = open(expected_presentation)
+    assert yaml.load(expected_presentation, Loader=NxSafeLoader) is None
 
 
 def test_single_node():
@@ -52,6 +52,7 @@ def _test_presentation_to_representation(expected_yaml, expected_gml):
     expected_representation = nx.read_gml(expected_gml)
     actual_representation = open(expected_yaml)
     actual_representation = yaml.compose(actual_representation, Loader=NxSafeLoader)
+    actual_representation = actual_representation.graph
 
     # TODO presentation equivalence
     assert nx.is_isomorphic(actual_representation, expected_representation)

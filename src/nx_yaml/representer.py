@@ -83,6 +83,7 @@ class NxSafeRepresenter:
             relabel_label += item.number_of_nodes()
             pair_label = relabel_label
             relabel_label += 1
+            # all children to next head
             node.add_node(pair_label, bipartite=1)
             node.add_edge(pair_label, prev_label, direction="head")
             node.add_edge(pair_label, item_label, direction="tail")
