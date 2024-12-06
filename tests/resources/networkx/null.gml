@@ -1,5 +1,6 @@
 graph [
     multigraph 1
+    directed 1
     kind "scalar"
     node [
         id 0

@@ -1,5 +1,6 @@
 graph [
     multigraph 1
+    directed 1
     kind "sequence"
     node [
         id 0

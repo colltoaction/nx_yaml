@@ -1,5 +1,6 @@
 graph [
     multigraph 1
+    directed 1
     kind "sequence"
     node [
         id 0
@@ -34,21 +35,17 @@ graph [
     edge[
         source 3
         target 0
-        direction "head"
     ]
     edge[
-        source 3
-        target 1
-        direction "tail"
+        source 1
+        target 3
     ]
     edge[
         source 4
         target 1
-        direction "head"
     ]
     edge[
-        source 4
-        target 2
-        direction "tail"
+        source 2
+        target 4
     ]
 ]

@@ -1,5 +1,6 @@
 graph [
     multigraph 1
+    directed 1
     kind "mapping"
     node [
         id 0
@@ -29,16 +30,13 @@ graph [
     edge[
         source 0
         target 3
-        direction "head"
     ]
     edge[
         source 3
         target 1
-        direction "head"
     ]
     edge[
-        source 3
-        target 2
-        direction "tail"
+        source 2
+        target 3
     ]
 ]
