@@ -1,27 +1,27 @@
 # nx_yaml
 
-Fast [Representation Graph] for PyYAML using NetworkX.
+Intermediate Representation for YAML documents using NetworkX.
 
-## Usage
+The YAML language has the flexibility to model all sorts of native data types across programming languages,
+with its power coming in part from the graph model behind every document.
+Understanding this data structure is key to create portable and correct tooling for YAML.
 
-### Text <-> native
+Graph Theory is well established in compiler infrastructure in the use of Abstract Syntax Trees.
+It is tempting to use them to model the YAML language but we have found them to be unfit.
+We chose [Incidence Graphs] because we need to support cycles, recursivity and other features
+that one doesn't see in traditional programming languages but make sense in this data language.
+
+## Quickstart
+
+Check the [notebook tutorial](tutorial.ipynb) for nice graph pictures!
 
 ```py
 import yaml
-from nx_yaml import NxSafeDumper, NxSafeLoader
-
-data_in = yaml.load("yaml: great", Loader=NxSafeLoader)
-data_out = yaml.dump(data_in, Dumper=NxSafeDumper)
-print(data_out)
-```
-
-### Text <-> graph
-
-```py
+from nx_yaml import NxSafeLoader
 import networkx as nx
 import matplotlib.pyplot as plt
 
-data_out = yaml.compose("[nx, also great]", Loader=NxSafeLoader)
+data_out = yaml.compose("Hello: World!", Loader=NxSafeLoader)
 nx.draw_spectral(data_out, with_labels=True, node_size=5000)
 plt.show()
 ```
@@ -78,3 +78,4 @@ The development environment is self-contained using the `pipenv` tool.
 
 [Representation Graph]: https://yaml.org/spec/1.2.2/#321-representation-graph
 [pyyaml.nodes]: https://github.com/yaml/pyyaml/blob/main/lib/yaml/nodes.py
+[Incidence Graphs]: https://en.wikipedia.org/wiki/Levi_graph
