@@ -1,9 +1,8 @@
+from pathlib import Path
 import networkx as nx
-import matplotlib.pyplot as plt
 import yaml
 
-from src.nx_yaml.constructor import NxSafeConstructor
-from src.nx_yaml.representer import NxSafeRepresenter
+from src.nx_yaml import NxSafeDumper, NxSafeLoader
 
 
 def test_null():
@@ -49,13 +48,9 @@ def test_nested_lists():
 
 
 def _test_representation_to_native(expected_yaml, expected_gml):
-    expected_representation = nx.read_gml(expected_gml)
-    actual_native = NxSafeConstructor().construct_object(expected_representation)
-    backforth_representation = NxSafeRepresenter().represent_data(actual_native)
-    assert nx.is_isomorphic(expected_representation, backforth_representation)
-
-    expected_native = yaml.load(open(expected_yaml), Loader=yaml.SafeLoader)
-    actual_representation = NxSafeRepresenter().represent_data(expected_native)
-    print(expected_native)
-    print(actual_representation.nodes(data="value"))
-    assert nx.is_isomorphic(expected_representation, actual_representation)
+    original_graph = nx.read_gml(expected_gml)
+    serialized_string = yaml.serialize(original_graph, Dumper=NxSafeDumper)
+    original_string = Path(expected_yaml).read_text()
+    composed_graph = yaml.compose(original_string, Loader=NxSafeLoader)
+    assert original_string == serialized_string
+    assert nx.is_isomorphic(original_graph, composed_graph.graph)
