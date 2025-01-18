@@ -6,8 +6,11 @@ Intermediate Representation for YAML documents using NetworkX.
 The YAML language has the flexibility to model all sorts of data across programming languages,
 with its power coming in part from the graph model behind every document.
 Graph Theory is well established in compiler infrastructure, popularized by the use of Abstract Syntax Trees.
-We chose [Incidence Graphs] over ASTs for YAML because we need to support cycles, recursivity and other features that one doesn't see in traditional programming languages.
+We chose [Hypergraphs] over ASTs for YAML because we need to support cycles, recursivity and other features that one doesn't see in traditional programming languages.
 Understanding this data structure is key to create portable and correct tooling for YAML, moving freely between text-based and abstract representations.
+
+### Hypergraphs as Intermediate Representation
+The use of Hypergraphs gives rise to a higher-order interpretation where  IR data structures
 
 ## Implementation
 This project implements the PyYAML `yaml.compose` and `yaml.serialize` APIs using the NetworkX graph library.
@@ -44,4 +47,4 @@ The development environment is self-contained using the `pipenv` tool.
 
 [Representation Graph]: https://yaml.org/spec/1.2.2/#321-representation-graph
 [pyyaml.nodes]: https://github.com/yaml/pyyaml/blob/main/lib/yaml/nodes.py
-[Incidence Graphs]: https://en.wikipedia.org/wiki/Levi_graph
+[Hypergraphs]: https://en.wikipedia.org/wiki/Hypergraph

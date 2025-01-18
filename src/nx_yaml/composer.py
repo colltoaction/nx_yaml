@@ -1,9 +1,9 @@
 
 __all__ = ['NxComposer', 'ComposerError']
 
+import networkx as nx
 from yaml.error import MarkedYAMLError
 from yaml.events import *
-from .nodes import ScalarNode, MappingNode, SequenceNode
 
 class ComposerError(MarkedYAMLError):
     pass
@@ -89,9 +89,15 @@ class NxComposer:
         event = self.get_event()
         tag = event.tag
         if tag is None or tag == '!':
-            tag = self.resolve(ScalarNode, event.value, event.implicit)
-        node = ScalarNode(tag, event.value,
-                event.start_mark, event.end_mark, style=event.style)
+            tag = self.resolve("scalar", event.value, event.implicit)
+        node = nx.DiGraph()
+        node.add_node(0, bipartite=0,
+                kind="scalar", tag=tag, value=event.value,
+                start_mark=event.start_mark,
+                end_mark=event.end_mark,
+                flow_style=event.style)
+        node.add_node(1, bipartite=1)
+        node.add_edge(1, 0, direction="tail")
         if anchor is not None:
             self.anchors[anchor] = node
         return node
@@ -100,10 +106,14 @@ class NxComposer:
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
-            tag = self.resolve(SequenceNode, None, start_event.implicit)
-        node = SequenceNode(tag, [],
-                start_event.start_mark, None,
+            tag = self.resolve("sequence", None, start_event.implicit)
+        node = nx.DiGraph()
+        node.add_node(0, bipartite=0,
+                kind="sequence", tag=tag,
+                start_mark=start_event.start_mark,
                 flow_style=start_event.flow_style)
+        node.add_node(1, bipartite=1)
+        node.add_edge(1, 0, direction="tail")
         if anchor is not None:
             self.anchors[anchor] = node
         index = 0
@@ -112,17 +122,23 @@ class NxComposer:
             node.append(node_at_index)
             index += 1
         end_event = self.get_event()
-        node.end_mark = end_event.end_mark
+        node.nodes[0]["end_mark"] = end_event.end_mark
         return node
 
     def compose_mapping_node(self, anchor):
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
-            tag = self.resolve(MappingNode, None, start_event.implicit)
-        node = MappingNode(tag, [],
-                start_event.start_mark, None,
+            tag = self.resolve("mapping", None, start_event.implicit)
+        node = nx.DiGraph()
+        node.add_node(0, bipartite=0,
+                kind="mapping", tag=tag,
+                start_mark=start_event.start_mark,
                 flow_style=start_event.flow_style)
+        self.prev_label = 0
+        node.add_node(1, bipartite=1)
+        node.add_edge(1, 0, direction="tail")
+
         if anchor is not None:
             self.anchors[anchor] = node
         while not self.check_event(MappingEndEvent):
@@ -136,5 +152,6 @@ class NxComposer:
             node.append(item_key, item_value)
         end_event = self.get_event()
         node.end_mark = end_event.end_mark
+        node.nodes[0]["end_mark"] = end_event.end_mark
         return node
 
