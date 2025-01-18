@@ -5,13 +5,13 @@ __all__ = [
 
 from yaml.parser import Parser
 from yaml.constructor import SafeConstructor
-from yaml.emitter import Emitter
 from yaml.reader import Reader
 from yaml.representer import SafeRepresenter
 from yaml.resolver import BaseResolver
 from yaml.scanner import Scanner
 
 from .composer import NxComposer
+from .emitter import NxEmitter
 from .serializer import NxSerializer
 
 # TODO using CParser doesn't integrate well
@@ -25,7 +25,7 @@ class NxSafeLoader(Reader, Scanner, Parser, NxComposer, SafeConstructor, BaseRes
         SafeConstructor.__init__(self)
         BaseResolver.__init__(self)
 
-class NxSafeDumper(Emitter, NxSerializer, SafeRepresenter, BaseResolver):
+class NxSafeDumper(NxEmitter, NxSerializer, SafeRepresenter, BaseResolver):
 
     def __init__(self, stream,
             default_style=None, default_flow_style=False,
@@ -33,7 +33,7 @@ class NxSafeDumper(Emitter, NxSerializer, SafeRepresenter, BaseResolver):
             allow_unicode=None, line_break=None,
             encoding=None, explicit_start=None, explicit_end=None,
             version=None, tags=None, sort_keys=True):
-        Emitter.__init__(self, stream, canonical=canonical,
+        NxEmitter.__init__(self, stream, canonical=canonical,
                 indent=indent, width=width,
                 allow_unicode=allow_unicode, line_break=line_break)
         NxSerializer.__init__(self, encoding=encoding,

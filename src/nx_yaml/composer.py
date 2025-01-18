@@ -24,16 +24,15 @@ class NxComposer:
     def get_node(self):
         # Get the root node of the next document.
         if not self.check_event(StreamEndEvent):
-            return self.compose_document()
+            return self.compose_document(nx.DiGraph())
 
     def get_single_node(self):
-        # Drop the STREAM-START event.
-        self.get_event()
+        stream_start_event = self.get_event()
 
         # Compose a document if the stream is not empty.
-        document = None
+        document = nx.DiGraph()
         if not self.check_event(StreamEndEvent):
-            document = self.compose_document()
+            self.compose_document(document)
 
         # Ensure that the stream contains no more documents.
         if not self.check_event(StreamEndEvent):
@@ -42,25 +41,26 @@ class NxComposer:
                     document.start_mark, "but found another document",
                     event.start_mark)
 
-        # Drop the STREAM-END event.
-        self.get_event()
+        stream_end_event = self.get_event()
+        document.graph["stream_start_event"] = stream_start_event
+        document.graph["stream_end_event"] = stream_end_event
 
         return document
 
-    def compose_document(self):
-        # Drop the DOCUMENT-START event.
-        self.get_event()
+    def compose_document(self, document):
+        document_start_event = self.get_event()
 
         # Compose the root node.
-        node = self.compose_node(None, None)
+        node = self.compose_node(document, None, None)
 
-        # Drop the DOCUMENT-END event.
-        self.get_event()
+        document_end_event = self.get_event()
+        document.graph["document_start_event"] = document_start_event
+        document.graph["document_end_event"] = document_end_event
 
         self.anchors = {}
         return node
 
-    def compose_node(self, parent, index):
+    def compose_node(self, document, parent, index):
         if self.check_event(AliasEvent):
             event = self.get_event()
             anchor = event.anchor
@@ -77,81 +77,77 @@ class NxComposer:
                         "second occurrence", event.start_mark)
         self.descend_resolver(parent, index)
         if self.check_event(ScalarEvent):
-            node = self.compose_scalar_node(anchor)
+            node = self.compose_scalar_node(document, anchor)
         elif self.check_event(SequenceStartEvent):
-            node = self.compose_sequence_node(anchor)
+            node = self.compose_sequence_node(document, anchor)
         elif self.check_event(MappingStartEvent):
-            node = self.compose_mapping_node(anchor)
+            node = self.compose_mapping_node(document, anchor)
         self.ascend_resolver()
         return node
 
-    def compose_scalar_node(self, anchor):
+    def compose_scalar_node(self, document, anchor):
         event = self.get_event()
         tag = event.tag
         if tag is None or tag == '!':
             tag = self.resolve("scalar", event.value, event.implicit)
-        node = nx.DiGraph()
-        node.add_node(0, bipartite=0,
+        document.add_node(0, bipartite=0,
                 kind="scalar", tag=tag, value=event.value,
                 start_mark=event.start_mark,
                 end_mark=event.end_mark,
                 flow_style=event.style)
-        node.add_node(1, bipartite=1)
-        node.add_edge(1, 0, direction="tail")
+        document.add_node(1, bipartite=1)
+        document.add_edge(1, 0, direction="tail")
         if anchor is not None:
-            self.anchors[anchor] = node
-        return node
+            self.anchors[anchor] = document
 
-    def compose_sequence_node(self, anchor):
+    def compose_sequence_node(self, document, anchor):
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
             tag = self.resolve("sequence", None, start_event.implicit)
-        node = nx.DiGraph()
-        node.add_node(0, bipartite=0,
+        document.add_node(0, bipartite=0,
                 kind="sequence", tag=tag,
                 start_mark=start_event.start_mark,
                 flow_style=start_event.flow_style)
-        node.add_node(1, bipartite=1)
-        node.add_edge(1, 0, direction="tail")
+        document.add_node(1, bipartite=1)
+        document.add_edge(1, 0, direction="tail")
         if anchor is not None:
-            self.anchors[anchor] = node
+            self.anchors[anchor] = document
         index = 0
         while not self.check_event(SequenceEndEvent):
-            node_at_index = self.compose_node(node, index)
-            node.append(node_at_index)
+            node_at_index = self.compose_node(document, document, index)
+            document.append(node_at_index)
             index += 1
         end_event = self.get_event()
-        node.nodes[0]["end_mark"] = end_event.end_mark
-        return node
+        document.nodes[0]["end_mark"] = end_event.end_mark
+        return document
 
-    def compose_mapping_node(self, anchor):
+    def compose_mapping_node(self, document, anchor):
         start_event = self.get_event()
         tag = start_event.tag
         if tag is None or tag == '!':
             tag = self.resolve("mapping", None, start_event.implicit)
-        node = nx.DiGraph()
-        node.add_node(0, bipartite=0,
+        document.add_node(0, bipartite=0,
                 kind="mapping", tag=tag,
                 start_mark=start_event.start_mark,
                 flow_style=start_event.flow_style)
         self.prev_label = 0
-        node.add_node(1, bipartite=1)
-        node.add_edge(1, 0, direction="tail")
+        document.add_node(1, bipartite=1)
+        document.add_edge(1, 0, direction="tail")
 
         if anchor is not None:
-            self.anchors[anchor] = node
+            self.anchors[anchor] = document
         while not self.check_event(MappingEndEvent):
             #key_event = self.peek_event()
-            item_key = self.compose_node(node, None)
+            item_key = self.compose_node(document, document, None)
             #if item_key in node.value:
             #    raise ComposerError("while composing a mapping", start_event.start_mark,
             #            "found duplicate key", key_event.start_mark)
-            item_value = self.compose_node(node, item_key)
+            item_value = self.compose_node(document, document, item_key)
             #node.value[item_key] = item_value
-            node.append(item_key, item_value)
+            document.append(item_key, item_value)
         end_event = self.get_event()
-        node.end_mark = end_event.end_mark
-        node.nodes[0]["end_mark"] = end_event.end_mark
-        return node
+        document.end_mark = end_event.end_mark
+        document.nodes[0]["end_mark"] = end_event.end_mark
+        return document
 

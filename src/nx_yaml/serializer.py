@@ -26,7 +26,10 @@ class NxSerializer:
 
     def open(self):
         if self.closed is None:
-            self.emit(StreamStartEvent(encoding=self.use_encoding))
+            self.emit(StreamStartEvent(
+                start_mark=None,
+                end_mark=None,
+                encoding=self.use_encoding))
             self.closed = False
         elif self.closed:
             raise SerializerError("serializer is closed")
@@ -48,11 +51,10 @@ class NxSerializer:
             raise SerializerError("serializer is not opened")
         elif self.closed:
             raise SerializerError("serializer is closed")
-        self.emit(DocumentStartEvent(explicit=self.use_explicit_start,
-            version=self.use_version, tags=self.use_tags))
+        self.emit(node.graph["document_start_event"])
         self.anchor_node(node)
         self.serialize_node(node, None, None)
-        self.emit(DocumentEndEvent(explicit=self.use_explicit_end))
+        self.emit(node.graph["document_end_event"])
         self.serialized_nodes = {}
         self.anchors = {}
         self.last_anchor_id = 0
@@ -82,6 +84,7 @@ class NxSerializer:
         if node in self.serialized_nodes:
             self.emit(AliasEvent(alias))
         else:
+            print(node.graph)
             print(node.nodes(data=True))
             self.serialized_nodes[node] = True
             self.descend_resolver(parent, index)
@@ -92,6 +95,8 @@ class NxSerializer:
                 implicit = True, True
 
                 self.emit(ScalarEvent(alias, node.nodes[0].get("tag"), implicit, node.nodes[0].get("value"),
+                    start_mark=node.nodes[0].get("start_mark"),
+                    end_mark=node.nodes[0].get("end_mark"),
                     style=node.nodes[0].get("style")))
             elif node.nodes[0].get("kind") == "sequence":
                 implicit = (node.nodes[0].get("tag")
