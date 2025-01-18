@@ -1,7 +1,5 @@
 graph [
-    multigraph 1
     directed 1
-    kind "mapping"
     node [
         id 0
         label 0
