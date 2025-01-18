@@ -52,6 +52,6 @@ def _test_representation_to_native(expected_yaml, expected_gml):
     serialized_string = yaml.serialize(original_graph, Dumper=NxSafeDumper)
     original_string = Path(expected_yaml).read_text()
     composed_graph = yaml.compose(original_string, Loader=NxSafeLoader)
-    # print(composed_graph.graph.nodes(data=True))
+    print(composed_graph.nodes(data=True))
     assert original_string == serialized_string
     assert nx.is_isomorphic(original_graph, composed_graph)

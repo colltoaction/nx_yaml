@@ -48,6 +48,11 @@ class NxComposer:
         return document
 
     def compose_document(self, document):
+        if not self.check_event(DocumentStartEvent):
+            event = self.get_event()
+            raise ComposerError("expected the document start",
+                    document.start_mark, "but got another event",
+                    event.start_mark)
         document_start_event = self.get_event()
 
         # Compose the root node.

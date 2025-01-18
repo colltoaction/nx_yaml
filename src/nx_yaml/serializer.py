@@ -2,11 +2,9 @@
 __all__ = ['NxSerializer', 'SerializerError']
 
 import networkx as nx
-from yaml.error import YAMLError
+from yaml.error import Mark
+from yaml.serializer import SerializerError
 from yaml.events import *
-
-class SerializerError(YAMLError):
-    pass
 
 class NxSerializer:
 
@@ -51,15 +49,48 @@ class NxSerializer:
             raise SerializerError("serializer is not opened")
         elif self.closed:
             raise SerializerError("serializer is closed")
-        self.emit(node.graph["document_start_event"])
+        self.emit(DocumentStartEvent(
+            start_mark=Mark(
+                node.graph.get("document_end_start_mark_name"),
+                node.graph.get("document_end_start_mark_index"),
+                node.graph.get("document_end_start_mark_line"),
+                node.graph.get("document_end_start_mark_column"),
+                node.graph.get("document_end_start_mark_buffer"),
+                node.graph.get("document_end_start_mark_pointer")),
+            end_mark=Mark(
+                node.graph.get("document_end_end_mark_name"),
+                node.graph.get("document_end_end_mark_index"),
+                node.graph.get("document_end_end_mark_line"),
+                node.graph.get("document_end_end_mark_column"),
+                node.graph.get("document_end_end_mark_buffer"),
+                node.graph.get("document_end_end_mark_pointer")),
+            explicit=node.graph.get("document_start_use_explicit_start"),
+            version=node.graph.get("document_start_use_version"),
+            tags=node.graph.get("document_start_use_tags")))
         self.anchor_node(node)
         self.serialize_node(node, None, None)
-        self.emit(node.graph["document_end_event"])
+        self.emit(DocumentEndEvent(
+            start_mark=Mark(
+                node.graph.get("document_end_start_mark_name"),
+                node.graph.get("document_end_start_mark_index"),
+                node.graph.get("document_end_start_mark_line"),
+                node.graph.get("document_end_start_mark_column"),
+                node.graph.get("document_end_start_mark_buffer"),
+                node.graph.get("document_end_start_mark_pointer")),
+            end_mark=Mark(
+                node.graph.get("document_end_end_mark_name"),
+                node.graph.get("document_end_end_mark_index"),
+                node.graph.get("document_end_end_mark_line"),
+                node.graph.get("document_end_end_mark_column"),
+                node.graph.get("document_end_end_mark_buffer"),
+                node.graph.get("document_end_end_mark_pointer")),
+            explicit=node.graph.get("document_end_explicit")))
         self.serialized_nodes = {}
         self.anchors = {}
         self.last_anchor_id = 0
 
     def anchor_node(self, node: nx.DiGraph):
+        return
         if node in self.anchors:
             if self.anchors[node] is None:
                 self.anchors[node] = self.generate_anchor(node)
@@ -80,29 +111,47 @@ class NxSerializer:
         return self.ANCHOR_TEMPLATE % self.last_anchor_id
 
     def serialize_node(self, node, parent, index):
-        alias = self.anchors[node]
+        # alias = self.anchors[node]
         if node in self.serialized_nodes:
-            self.emit(AliasEvent(alias))
+            self.emit(AliasEvent(node.nodes[0].get("anchor")))
         else:
-            print(node.graph)
-            print(node.nodes(data=True))
+            # print(node.graph)
+            # print(node.nodes(data=True))
             self.serialized_nodes[node] = True
             self.descend_resolver(parent, index)
-            if node.nodes[0].get("kind") == "scalar":
+            if not node:
+                pass
+            elif node.nodes[0].get("kind") == "scalar":
                 # TODO
                 detected_tag = self.resolve("scalar", node, (True, False))
                 default_tag = self.resolve("scalar", node, (False, True))
                 implicit = True, True
 
-                self.emit(ScalarEvent(alias, node.nodes[0].get("tag"), implicit, node.nodes[0].get("value"),
-                    start_mark=node.nodes[0].get("start_mark"),
-                    end_mark=node.nodes[0].get("end_mark"),
+                self.emit(ScalarEvent(
+                    node.nodes[0].get("anchor"),
+                    node.nodes[0].get("tag"),
+                    implicit,
+                    node.nodes[0].get("value"),
+                    start_mark=Mark(
+                        node.nodes[0].get("start_mark_name"),
+                        node.nodes[0].get("start_mark_index"),
+                        node.nodes[0].get("start_mark_line"),
+                        node.nodes[0].get("start_mark_column"),
+                        node.nodes[0].get("start_mark_buffer"),
+                        node.nodes[0].get("start_mark_pointer")),
+                    end_mark=Mark(
+                        node.nodes[0].get("end_mark_name"),
+                        node.nodes[0].get("end_mark_index"),
+                        node.nodes[0].get("end_mark_line"),
+                        node.nodes[0].get("end_mark_column"),
+                        node.nodes[0].get("end_mark_buffer"),
+                        node.nodes[0].get("end_mark_pointer")),
                     style=node.nodes[0].get("style")))
             elif node.nodes[0].get("kind") == "sequence":
                 implicit = (node.nodes[0].get("tag")
                 # TODO iterate according to representer
                             == self.resolve("sequence", node, True))
-                self.emit(SequenceStartEvent(alias, node.nodes[0].get("tag"), implicit,
+                self.emit(SequenceStartEvent(node.nodes[0].get("anchor"), node.nodes[0].get("tag"), implicit,
                     flow_style=node.nodes[0].get("flow_style")))
                 index = 0
                 # TODO iterate according to representer
@@ -114,7 +163,7 @@ class NxSerializer:
                 implicit = (node.nodes[0].get("tag")
                 # TODO iterate according to representer
                             == self.resolve("mapping", node, True))
-                self.emit(MappingStartEvent(alias, node.nodes[0].get("tag"), implicit,
+                self.emit(MappingStartEvent(node.nodes[0].get("anchor"), node.nodes[0].get("tag"), implicit,
                     flow_style=node.nodes[0].get("flow_style")))
                     # TODO iterate according to representer
                 for key, value in node.edges:

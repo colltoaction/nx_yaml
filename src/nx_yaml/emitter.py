@@ -219,7 +219,10 @@ class NxEmitter:
         self.sequence_context = sequence
         self.mapping_context = mapping
         self.simple_key_context = simple_key
-        if isinstance(self.event, AliasEvent):
+        if root and isinstance(self.event, (DocumentEndEvent, StreamEndEvent)):
+            # the empty file
+            pass
+        elif isinstance(self.event, AliasEvent):
             self.expect_alias()
         elif isinstance(self.event, (ScalarEvent, CollectionStartEvent)):
             self.process_anchor('&')
@@ -1062,8 +1065,8 @@ class NxEmitter:
             end += 1
 
     def write_plain(self, text, split=True):
-        if self.root_context:
-            self.open_ended = True
+        # if self.root_context:
+        #     self.open_ended = True
         if not text:
             return
         if not self.whitespace:
