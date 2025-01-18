@@ -68,7 +68,7 @@ class NxSerializer:
             version=node.graph.get("document_start_use_version"),
             tags=node.graph.get("document_start_use_tags")))
         self.anchor_node(node)
-        self.serialize_node(node, None, None)
+        self.serialize_node(node, None, 0)
         self.emit(DocumentEndEvent(
             start_mark=Mark(
                 node.graph.get("document_end_start_mark_name"),
@@ -96,11 +96,11 @@ class NxSerializer:
                 self.anchors[node] = self.generate_anchor(node)
         else:
             self.anchors[node] = None
-            if node.nodes[0].get("kind") == "sequence":
+            if node.nodes[index].get("kind") == "sequence":
                 # TODO iterate according to representer
                 for item in node:
                     self.anchor_node(item)
-            elif node.nodes[0].get("kind") == "mapping":
+            elif node.nodes[index].get("kind") == "mapping":
                 # TODO iterate according to representer
                 for key, value in node:
                     self.anchor_node(key)
@@ -113,62 +113,65 @@ class NxSerializer:
     def serialize_node(self, node, parent, index):
         # alias = self.anchors[node]
         if node in self.serialized_nodes:
-            self.emit(AliasEvent(node.nodes[0].get("anchor")))
+            self.emit(AliasEvent(node.nodes[index].get("anchor")))
         else:
             # print(node.graph)
             # print(node.nodes(data=True))
-            self.serialized_nodes[node] = True
+            # self.serialized_nodes[node] = True
             self.descend_resolver(parent, index)
             if not node:
                 pass
-            elif node.nodes[0].get("kind") == "scalar":
+            elif node.nodes[index].get("kind") == "scalar":
                 # TODO
                 detected_tag = self.resolve("scalar", node, (True, False))
                 default_tag = self.resolve("scalar", node, (False, True))
                 implicit = True, True
 
                 self.emit(ScalarEvent(
-                    node.nodes[0].get("anchor"),
-                    node.nodes[0].get("tag"),
+                    node.nodes[index].get("anchor"),
+                    node.nodes[index].get("tag"),
                     implicit,
-                    node.nodes[0].get("value"),
+                    node.nodes[index].get("value"),
                     start_mark=Mark(
-                        node.nodes[0].get("start_mark_name"),
-                        node.nodes[0].get("start_mark_index"),
-                        node.nodes[0].get("start_mark_line"),
-                        node.nodes[0].get("start_mark_column"),
-                        node.nodes[0].get("start_mark_buffer"),
-                        node.nodes[0].get("start_mark_pointer")),
+                        node.nodes[index].get("start_mark_name"),
+                        node.nodes[index].get("start_mark_index"),
+                        node.nodes[index].get("start_mark_line"),
+                        node.nodes[index].get("start_mark_column"),
+                        node.nodes[index].get("start_mark_buffer"),
+                        node.nodes[index].get("start_mark_pointer")),
                     end_mark=Mark(
-                        node.nodes[0].get("end_mark_name"),
-                        node.nodes[0].get("end_mark_index"),
-                        node.nodes[0].get("end_mark_line"),
-                        node.nodes[0].get("end_mark_column"),
-                        node.nodes[0].get("end_mark_buffer"),
-                        node.nodes[0].get("end_mark_pointer")),
-                    style=node.nodes[0].get("style")))
-            elif node.nodes[0].get("kind") == "sequence":
-                implicit = (node.nodes[0].get("tag")
+                        node.nodes[index].get("end_mark_name"),
+                        node.nodes[index].get("end_mark_index"),
+                        node.nodes[index].get("end_mark_line"),
+                        node.nodes[index].get("end_mark_column"),
+                        node.nodes[index].get("end_mark_buffer"),
+                        node.nodes[index].get("end_mark_pointer")),
+                    style=node.nodes[index].get("style")))
+            elif node.nodes[index].get("kind") == "sequence":
+                implicit = (node.nodes[index].get("tag")
                 # TODO iterate according to representer
                             == self.resolve("sequence", node, True))
-                self.emit(SequenceStartEvent(node.nodes[0].get("anchor"), node.nodes[0].get("tag"), implicit,
-                    flow_style=node.nodes[0].get("flow_style")))
+                self.emit(SequenceStartEvent(node.nodes[index].get("anchor"), node.nodes[index].get("tag"), implicit,
+                    flow_style=node.nodes[index].get("flow_style")))
                 index = 0
                 # TODO iterate according to representer
                 for item in node:
                     self.serialize_node(item, node, index)
                     index += 1
                 self.emit(SequenceEndEvent())
-            elif node.nodes[0].get("kind") == "mapping":
-                implicit = (node.nodes[0].get("tag")
+            elif node.nodes[index].get("kind") == "mapping":
+                implicit = (node.nodes[index].get("tag")
                 # TODO iterate according to representer
                             == self.resolve("mapping", node, True))
-                self.emit(MappingStartEvent(node.nodes[0].get("anchor"), node.nodes[0].get("tag"), implicit,
-                    flow_style=node.nodes[0].get("flow_style")))
+                self.emit(MappingStartEvent(
+                    node.nodes[index].get("anchor"),
+                    node.nodes[index].get("tag"),
+                    implicit,
+                    flow_style=node.nodes[index].get("flow_style")))
                     # TODO iterate according to representer
-                for key, value in node.edges:
-                    self.serialize_node(key, node, None)
-                    self.serialize_node(value, node, key)
+                for e in node[index + 1]:
+                    if e != index:
+                        self.serialize_node(node, index, e)
                 self.emit(MappingEndEvent())
             self.ascend_resolver()
 

@@ -24,10 +24,10 @@ def mapping_append(graph: nx.DiGraph, item_key: nx.DiGraph, item_value: nx.DiGra
     #     graph.add_edge(pair_label, self.prev_label)
     #key_event = self.peek_event()
     key_label = relabel_label
-    item_key_graph = nx.relabel.convert_node_labels_to_integers(item_key.graph, key_label)
+    item_key_graph = nx.relabel.convert_node_labels_to_integers(item_key, key_label)
     relabel_label += item_key_graph.number_of_nodes()
     value_label = relabel_label
-    item_value_graph = nx.relabel.convert_node_labels_to_integers(item_value.graph, value_label)
+    item_value_graph = nx.relabel.convert_node_labels_to_integers(item_value, value_label)
     new_graph = nx.union(graph, item_key_graph)
     new_graph.add_edge(1, key_label)
     # new_graph.add_edge(pair_label, key_label, direction="tail")
@@ -36,7 +36,5 @@ def mapping_append(graph: nx.DiGraph, item_key: nx.DiGraph, item_value: nx.DiGra
         relabel_label += item_value_graph.number_of_nodes()
         # new_graph.add_edge(value_label, pair_label)
         # TODO for each hyperedge with out degree 0
-        for n, b in item_key_graph.nodes(data="bipartite"):
-            if b == 1 and item_key_graph.out_degree(n) == 1 and item_key_graph.in_degree(n) == 0:
-                new_graph.add_edge(n, value_label)
-    graph = new_graph
+        new_graph.add_edge(1, value_label, direction="tail")
+    return new_graph
