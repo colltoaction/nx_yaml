@@ -1,21 +1,19 @@
 # nx_yaml
-
-Intermediate Representation for YAML documents using NetworkX.
+`nx_yaml` is a general purpose Hypergraph Intermediate Representation for [YAML](https://yaml.org/spec/1.2.2) using [NetworkX](https://github.com/networkx/networkx). It provides native semantics for higher-order applications such as Hypergraph Analysis, Quantum Computing, Geometric Deep Learning and Monoidal Computing.
 
 ## Design
-The YAML language has the flexibility to model all sorts of data across programming languages,
-with its power coming in part from the graph model behind every document.
-Graph Theory is well established in compiler infrastructure, popularized by the use of Abstract Syntax Trees.
-We chose [Hypergraphs] over ASTs for YAML because we need to support cycles, recursivity and other features that one doesn't see in traditional programming languages.
-Understanding this data structure is key to create portable and correct tooling for YAML, moving freely between text-based and abstract representations.
+Graph Theory is well established in compiler infrastructure, popularized by the use of Abstract Syntax Trees, and recently projects such as [MLIR](https://mlir.llvm.org/docs/Rationale/RationaleGenericDAGRewriter/) have further explored Direct Acyclic Graphs. This project formalizes a [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph) IR with native semantics for higher-order applications such as:
+* Hypergraph Analysis: https://github.com/pnnl/HyperNetX
+* Quantum Computing: https://github.com/zxcalc/pyzx
+* Geometric Deep Learning: https://github.com/pyg-team/pytorch_geometric
+* Monoidal Computing: https://github.com/discopy/discopy
 
-### Hypergraphs as Intermediate Representation
-The use of Hypergraphs gives rise to a higher-order interpretation where  IR data structures
+YAML has the advantage of being a widely known syntax that is implemented in all programming languages. NetworkX enables seamless collaboration between graph libraries. We can implement all sorts of document transformations, leveraging a large ecosystem of software and well-known algorithms for complex networks.
 
 ## Implementation
 This project implements the PyYAML `yaml.compose` and `yaml.serialize` APIs using the NetworkX graph library.
 `compose` takes text input and converts it to a graph, while `serialize` does the inverse operation.
-Using NetworkX graphs we can implement all sorts of document transformations, leveraging a large ecosystem of software and well-known algorithms for complex networks.
+Understanding this data structure is key to create portable and correct tooling for YAML, moving freely between text-based and code representations.
 
 Check out the [notebook tutorial](tutorial.ipynb).
 We use `NxSafeLoader` and `NxSafeDumper` with the PyYAML `yaml.compose` and `yaml.serialize` APIs.
@@ -47,4 +45,3 @@ The development environment is self-contained using the `pipenv` tool.
 
 [Representation Graph]: https://yaml.org/spec/1.2.2/#321-representation-graph
 [pyyaml.nodes]: https://github.com/yaml/pyyaml/blob/main/lib/yaml/nodes.py
-[Hypergraphs]: https://en.wikipedia.org/wiki/Hypergraph
