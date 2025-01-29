@@ -15,14 +15,17 @@ def sequence_append(graph: nx.DiGraph, node: nx.DiGraph):
         if b == 1 and graph.out_degree(n) == 1 and graph.in_degree(n) == 0:
             new_graph.add_edge(n, item_label)
 
+def sequence_append(graph: nx.DiGraph, item: nx.DiGraph):
+    relabel_label = graph.number_of_nodes()
+    label = relabel_label
+    item_graph = nx.relabel.convert_node_labels_to_integers(item, label)
+    relabel_label += item_graph.number_of_nodes()
+    new_graph = nx.union(graph, item_graph)
+    new_graph.add_edge(1, label)
+    return new_graph
+
 def mapping_append(graph: nx.DiGraph, item_key: nx.DiGraph, item_value: nx.DiGraph):
     relabel_label = graph.number_of_nodes()
-    # pair_label = relabel_label
-    # graph.add_node(pair_label, bipartite=1)
-    # relabel_label += 1
-    # if self.prev_label:
-    #     graph.add_edge(pair_label, self.prev_label)
-    #key_event = self.peek_event()
     key_label = relabel_label
     item_key_graph = nx.relabel.convert_node_labels_to_integers(item_key, key_label)
     relabel_label += item_key_graph.number_of_nodes()
@@ -30,11 +33,8 @@ def mapping_append(graph: nx.DiGraph, item_key: nx.DiGraph, item_value: nx.DiGra
     item_value_graph = nx.relabel.convert_node_labels_to_integers(item_value, value_label)
     new_graph = nx.union(graph, item_key_graph)
     new_graph.add_edge(1, key_label)
-    # new_graph.add_edge(pair_label, key_label, direction="tail")
     if not (item_value_graph.nodes[value_label]["kind"] == "scalar" and not item_value_graph.nodes[value_label].get("value")):
         new_graph = nx.union(new_graph, item_value_graph)
         relabel_label += item_value_graph.number_of_nodes()
-        # new_graph.add_edge(value_label, pair_label)
-        # TODO for each hyperedge with out degree 0
         new_graph.add_edge(1, value_label, direction="tail")
     return new_graph

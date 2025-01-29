@@ -118,11 +118,9 @@ class NxComposer:
         node.add_edge(1, 0, direction="tail")
         if anchor is not None:
             self.anchors[anchor] = node
-        index = 0
         while not self.check_event(SequenceEndEvent):
-            node_at_index = self.compose_node(node, index)
-            sequence_append(node, node_at_index)
-            index += 1
+            node_at_index = self.compose_node(node, None)
+            node = sequence_append(node, node_at_index)
         end_event = self.get_event()
         node.nodes[0]["end_mark"] = end_event.end_mark
         return node

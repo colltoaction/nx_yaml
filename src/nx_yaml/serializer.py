@@ -151,13 +151,15 @@ class NxSerializer:
                 implicit = (node.nodes[index].get("tag")
                 # TODO iterate according to representer
                             == self.resolve("sequence", node, True))
-                self.emit(SequenceStartEvent(node.nodes[index].get("anchor"), node.nodes[index].get("tag"), implicit,
+                self.emit(SequenceStartEvent(
+                    node.nodes[index].get("anchor"),
+                    node.nodes[index].get("tag"),
+                    implicit,
                     flow_style=node.nodes[index].get("flow_style")))
-                index = 0
                 # TODO iterate according to representer
-                for item in node:
-                    self.serialize_node(item, node, index)
-                    index += 1
+                for e in node[index + 1]:
+                    if e != index:
+                        self.serialize_node(node, index, e)
                 self.emit(SequenceEndEvent())
             elif node.nodes[index].get("kind") == "mapping":
                 implicit = (node.nodes[index].get("tag")
@@ -168,7 +170,6 @@ class NxSerializer:
                     node.nodes[index].get("tag"),
                     implicit,
                     flow_style=node.nodes[index].get("flow_style")))
-                    # TODO iterate according to representer
                 for e in node[index + 1]:
                     if e != index:
                         self.serialize_node(node, index, e)
