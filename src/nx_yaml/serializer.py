@@ -1,6 +1,7 @@
 
 __all__ = ['NxSerializer', 'SerializerError']
 
+from itertools import batched
 import networkx as nx
 from yaml.error import Mark
 from yaml.serializer import SerializerError
@@ -170,9 +171,9 @@ class NxSerializer:
                     node.nodes[index].get("tag"),
                     implicit,
                     flow_style=node.nodes[index].get("flow_style")))
-                for e in node[index + 1]:
-                    if e != index:
-                        self.serialize_node(node, index, e)
+                for e0, e1 in batched((n for n in node[index + 1] if n != index), 2):
+                    self.serialize_node(node, index, e0)
+                    self.serialize_node(node, index, e1)
                 self.emit(MappingEndEvent())
             self.ascend_resolver()
 
