@@ -38,7 +38,8 @@ graph [
         label 6
         bipartite 0
         kind "scalar"
-        value "left node"
+        value "node"
+        anchor "n"
     ]
     node [
         id 7
@@ -49,8 +50,8 @@ graph [
         id 8
         label 8
         bipartite 0
-        kind "scalar"
-        value "right node"
+        kind "alias"
+        anchor "n"
     ]
     node [
         id 9

@@ -4,7 +4,7 @@ graph [
         id 0
         label 0
         bipartite 0
-        kind "mapping"
+        kind "stream"
     ]
     node [
         id 1
@@ -15,8 +15,7 @@ graph [
         id 2
         label 2
         bipartite 0
-        kind "scalar"
-        value "first"
+        kind "document"
     ]
     node [
         id 3
@@ -27,8 +26,7 @@ graph [
         id 4
         label 4
         bipartite 0
-        kind "scalar"
-        value ""
+        kind "mapping"
     ]
     node [
         id 5
@@ -40,7 +38,7 @@ graph [
         label 6
         bipartite 0
         kind "scalar"
-        value "second"
+        value "first"
     ]
     node [
         id 7
@@ -51,7 +49,8 @@ graph [
         id 8
         label 8
         bipartite 0
-        kind "sequence"
+        kind "scalar"
+        value ""
     ]
     node [
         id 9
@@ -63,55 +62,94 @@ graph [
         label 10
         bipartite 0
         kind "scalar"
-        value "third"
+        value "second"
     ]
     node [
         id 11
         label 11
         bipartite 1
     ]
+    node [
+        id 12
+        label 12
+        bipartite 0
+        kind "sequence"
+    ]
+    node [
+        id 13
+        label 13
+        bipartite 1
+    ]
+    node [
+        id 14
+        label 14
+        bipartite 0
+        kind "scalar"
+        value "third"
+    ]
+    node [
+        id 15
+        label 15
+        bipartite 1
+    ]
     edge [
-        source 1
-        target 0
+        source 0
+        target 1
     ]
     edge [
         source 1
         target 2
+    ]
+    edge [
+        source 2
+        target 3
     ]
     edge [
         source 3
-        target 2
+        target 4
     ]
     edge [
-        source 1
-        target 4
+        source 4
+        target 5
     ]
     edge [
         source 5
-        target 4
-    ]
-    edge [
-        source 1
         target 6
     ]
     edge [
-        source 7
-        target 6
+        source 6
+        target 7
     ]
     edge [
-        source 1
+        source 5
         target 8
     ]
     edge [
-        source 9
-        target 8
+        source 8
+        target 9
     ]
     edge [
-        source 9
+        source 5
         target 10
     ]
     edge [
-        source 11
-        target 10
+        source 10
+        target 11
+    ]
+    edge [
+        source 5
+        target 12
+    ]
+    edge [
+        source 12
+        target 13
+    ]
+    edge [
+        source 13
+        target 14
+    ]
+    edge [
+        source 14
+        target 15
     ]
 ]
