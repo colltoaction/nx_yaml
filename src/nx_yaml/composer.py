@@ -26,14 +26,14 @@ class NxComposer:
         node.add_node(1, bipartite=1)
         node.add_edge(0, 1, event="start")
 
-        if not self.check_event(StreamEndEvent):
-            self.compose_document(node, 0, 2)
+        while not self.check_event(StreamEndEvent):
+            self.compose_document(node, 0, node.number_of_nodes())
 
-        # TODO many documents
-        # Ensure that the stream contains no more documents.
-        if not self.check_event(StreamEndEvent):
-            raise ComposerError("expected a single document in the stream",
-                    None, "but found another document")
+        # # TODO many documents
+        # # Ensure that the stream contains no more documents.
+        # if not self.check_event(StreamEndEvent):
+        #     raise ComposerError("expected a single document in the stream",
+        #             None, "but found another document")
 
         stream_end_event = self.get_event()
 
