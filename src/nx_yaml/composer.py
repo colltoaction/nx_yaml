@@ -89,7 +89,7 @@ class NxComposer:
         if not self.peek_event()[0] == "ScalarEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         event = self.get_event()
-        (_, anchor, tag, implicit, value, start_mark, end_mark, style) = event
+        (_, start_mark, end_mark, anchor, tag, implicit, value, style) = event
         node.add_node(index,
                 bipartite=0,
                 implicit=implicit,

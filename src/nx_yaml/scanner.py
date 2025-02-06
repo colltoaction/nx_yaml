@@ -26,9 +26,7 @@
 
 __all__ = ['NxScanner']
 
-from yaml.scanner import SimpleKey
-
-from .tokens import *
+from yaml.scanner import SimpleKey, ScannerError
 
 
 class NxScanner:
@@ -106,7 +104,7 @@ class NxScanner:
             if not choices:
                 return True
             for choice in choices:
-                if isinstance(self.tokens[0], choice):
+                if self.tokens[0][0] == choice:
                     return True
         return False
 
@@ -332,7 +330,7 @@ class NxScanner:
         while self.indent > column:
             mark = self.get_mark()
             self.indent = self.indents.pop()
-            self.tokens.append(BlockEndToken(mark, mark))
+            self.tokens.append(('<block end>', mark, mark))
 
     def add_indent(self, column):
         # Check if we need to increase indentation.
@@ -352,8 +350,8 @@ class NxScanner:
         mark = self.get_mark()
         
         # Add STREAM-START.
-        self.tokens.append(StreamStartToken(mark, mark,
-            encoding=self.encoding))
+        self.tokens.append(('<stream start>', mark, mark,
+            self.encoding))
         
 
     def fetch_stream_end(self):
@@ -370,7 +368,7 @@ class NxScanner:
         mark = self.get_mark()
         
         # Add STREAM-END.
-        self.tokens.append(StreamEndToken(mark, mark))
+        self.tokens.append(('<stream end>', mark, mark))
 
         # The steam is finished.
         self.done = True
@@ -388,10 +386,10 @@ class NxScanner:
         self.tokens.append(self.scan_directive())
 
     def fetch_document_start(self):
-        self.fetch_document_indicator(DocumentStartToken)
+        self.fetch_document_indicator('<document start>')
 
     def fetch_document_end(self):
-        self.fetch_document_indicator(DocumentEndToken)
+        self.fetch_document_indicator('<document end>')
 
     def fetch_document_indicator(self, TokenClass):
 
@@ -407,13 +405,13 @@ class NxScanner:
         start_mark = self.get_mark()
         self.forward(3)
         end_mark = self.get_mark()
-        self.tokens.append(TokenClass(start_mark, end_mark))
+        self.tokens.append((TokenClass, start_mark, end_mark))
 
     def fetch_flow_sequence_start(self):
-        self.fetch_flow_collection_start(FlowSequenceStartToken)
+        self.fetch_flow_collection_start('[')
 
     def fetch_flow_mapping_start(self):
-        self.fetch_flow_collection_start(FlowMappingStartToken)
+        self.fetch_flow_collection_start('{')
 
     def fetch_flow_collection_start(self, TokenClass):
 
@@ -430,13 +428,13 @@ class NxScanner:
         start_mark = self.get_mark()
         self.forward()
         end_mark = self.get_mark()
-        self.tokens.append(TokenClass(start_mark, end_mark))
+        self.tokens.append((TokenClass, start_mark, end_mark))
 
     def fetch_flow_sequence_end(self):
-        self.fetch_flow_collection_end(FlowSequenceEndToken)
+        self.fetch_flow_collection_end(']')
 
     def fetch_flow_mapping_end(self):
-        self.fetch_flow_collection_end(FlowMappingEndToken)
+        self.fetch_flow_collection_end('}')
 
     def fetch_flow_collection_end(self, TokenClass):
 
@@ -453,7 +451,7 @@ class NxScanner:
         start_mark = self.get_mark()
         self.forward()
         end_mark = self.get_mark()
-        self.tokens.append(TokenClass(start_mark, end_mark))
+        self.tokens.append((TokenClass, start_mark, end_mark))
 
     def fetch_flow_entry(self):
 
@@ -467,7 +465,7 @@ class NxScanner:
         start_mark = self.get_mark()
         self.forward()
         end_mark = self.get_mark()
-        self.tokens.append(FlowEntryToken(start_mark, end_mark))
+        self.tokens.append((",", start_mark, end_mark))
 
     def fetch_block_entry(self):
 
@@ -483,7 +481,7 @@ class NxScanner:
             # We may need to add BLOCK-SEQUENCE-START.
             if self.add_indent(self.column):
                 mark = self.get_mark()
-                self.tokens.append(BlockSequenceStartToken(mark, mark))
+                self.tokens.append(('<block sequence start>', mark, mark))
 
         # It's an error for the block entry to occur in the flow context,
         # but we let the parser detect this.
@@ -500,7 +498,7 @@ class NxScanner:
         start_mark = self.get_mark()
         self.forward()
         end_mark = self.get_mark()
-        self.tokens.append(BlockEntryToken(start_mark, end_mark))
+        self.tokens.append(("-", start_mark, end_mark))
 
     def fetch_key(self):
         
@@ -516,7 +514,7 @@ class NxScanner:
             # We may need to add BLOCK-MAPPING-START.
             if self.add_indent(self.column):
                 mark = self.get_mark()
-                self.tokens.append(BlockMappingStartToken(mark, mark))
+                self.tokens.append(('<block mapping start>', mark, mark))
 
         # Simple keys are allowed after '?' in the block context.
         self.allow_simple_key = not self.flow_level
@@ -528,7 +526,7 @@ class NxScanner:
         start_mark = self.get_mark()
         self.forward()
         end_mark = self.get_mark()
-        self.tokens.append(KeyToken(start_mark, end_mark))
+        self.tokens.append(("?", start_mark, end_mark))
 
     def fetch_value(self):
 
@@ -539,14 +537,14 @@ class NxScanner:
             key = self.possible_simple_keys[self.flow_level]
             del self.possible_simple_keys[self.flow_level]
             self.tokens.insert(key.token_number-self.tokens_taken,
-                    KeyToken(key.mark, key.mark))
+                    ('?', key.mark, key.mark))
 
             # If this key starts a new block mapping, we need to add
             # BLOCK-MAPPING-START.
             if not self.flow_level:
                 if self.add_indent(key.column):
                     self.tokens.insert(key.token_number-self.tokens_taken,
-                            BlockMappingStartToken(key.mark, key.mark))
+                            ('<block mapping start>', key.mark, key.mark))
 
             # There cannot be two simple keys one after another.
             self.allow_simple_key = False
@@ -572,7 +570,7 @@ class NxScanner:
             if not self.flow_level:
                 if self.add_indent(self.column):
                     mark = self.get_mark()
-                    self.tokens.append(BlockMappingStartToken(mark, mark))
+                    self.tokens.append(('<block mapping start>', mark, mark))
 
             # Simple keys are allowed after ':' in the block context.
             self.allow_simple_key = not self.flow_level
@@ -584,7 +582,7 @@ class NxScanner:
         start_mark = self.get_mark()
         self.forward()
         end_mark = self.get_mark()
-        self.tokens.append(ValueToken(start_mark, end_mark))
+        self.tokens.append((":", start_mark, end_mark))
 
     def fetch_alias(self):
 
@@ -595,7 +593,7 @@ class NxScanner:
         self.allow_simple_key = False
 
         # Scan and add ALIAS.
-        self.tokens.append(self.scan_anchor(AliasToken))
+        self.tokens.append(self.scan_anchor('<alias>'))
 
     def fetch_anchor(self):
 
@@ -606,7 +604,7 @@ class NxScanner:
         self.allow_simple_key = False
 
         # Scan and add ANCHOR.
-        self.tokens.append(self.scan_anchor(AnchorToken))
+        self.tokens.append(self.scan_anchor('<anchor>'))
 
     def fetch_tag(self):
 
@@ -918,7 +916,7 @@ class NxScanner:
                     "expected alphabetic or numeric character, but found %r"
                     % ch, self.get_mark())
         end_mark = self.get_mark()
-        return TokenClass(value, start_mark, end_mark)
+        return (TokenClass, start_mark, end_mark, value)
 
     def scan_tag(self):
         # See the specification for details.
@@ -1034,7 +1032,7 @@ class NxScanner:
             chunks.extend(breaks)
 
         # We are done.
-        return ScalarToken(''.join(chunks), False, start_mark, end_mark,
+        return ('<scalar>', ''.join(chunks), False, start_mark, end_mark,
                 style)
 
     def scan_block_scalar_indicators(self, start_mark):
@@ -1140,7 +1138,7 @@ class NxScanner:
             chunks.extend(self.scan_flow_scalar_non_spaces(double, start_mark))
         self.forward()
         end_mark = self.get_mark()
-        return ScalarToken(''.join(chunks), False, start_mark, end_mark,
+        return ('<scalar>', ''.join(chunks), False, start_mark, end_mark,
                 style)
 
     ESCAPE_REPLACEMENTS = {
@@ -1294,7 +1292,7 @@ class NxScanner:
             if not spaces or self.peek() == '#' \
                     or (not self.flow_level and self.column < indent):
                 break
-        return ScalarToken(''.join(chunks), True, start_mark, end_mark)
+        return ('<scalar>', ''.join(chunks), True, start_mark, end_mark)
 
     def scan_plain_spaces(self, indent, start_mark):
         # See the specification for details.
