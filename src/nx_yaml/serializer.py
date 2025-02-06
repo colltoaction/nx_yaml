@@ -6,14 +6,12 @@
 # sequence ::= SEQUENCE-START node* SEQUENCE-END
 # mapping ::= MAPPING-START (node node)* MAPPING-END
 
-__all__ = ['NxSerializer', 'SerializerError']
+__all__ = ['NxSerializer']
 
 from itertools import batched
-import networkx as nx
-from yaml.emitter import EmitterError, ScalarAnalysis
-from yaml.error import Mark
-from yaml.serializer import SerializerError
 
+from yaml.emitter import EmitterError, ScalarAnalysis
+from yaml.serializer import SerializerError
 
 
 class NxSerializer:

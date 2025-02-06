@@ -1,14 +1,11 @@
 
-__all__ = ['NxComposer', 'ComposerError']
+__all__ = ['NxComposer']
 
 import networkx as nx
-from yaml.error import MarkedYAMLError
-from yaml.events import *
+from yaml.composer import ComposerError
 
-from .nodes import mapping_append, sequence_append
+from .events import *
 
-class ComposerError(MarkedYAMLError):
-    pass
 
 class NxComposer:
 
