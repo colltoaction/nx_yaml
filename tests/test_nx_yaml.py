@@ -53,12 +53,18 @@ def test_two_documents():
     _test_representation_to_native(expected_yaml, expected_gml)
 
 
+def test_combination():
+    expected_yaml = "tests/resources/yaml/combination.yaml"
+    expected_gml = "tests/resources/networkx/combination.gml"
+    _test_representation_to_native(expected_yaml, expected_gml)
+
+
 def _test_representation_to_native(expected_yaml, expected_gml):
     original_string = Path(expected_yaml).read_text()
-    # composed_graph = yaml.compose(original_string, Loader=NxSafeLoader)
     composed_graph = nx_compose_all(original_string)
+    # TODO remove sanity check
+    # nx.write_gml(composed_graph, expected_gml)
     original_graph = nx.read_gml(expected_gml)
     serialized_string = nx_serialize_all(original_graph)
-    # serialized_string = yaml.serialize(original_graph, Dumper=NxSafeDumper)
     assert original_string == serialized_string
     assert nx.is_isomorphic(original_graph, composed_graph)

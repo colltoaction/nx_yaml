@@ -682,8 +682,6 @@ class NxSerializer:
             return '!<%s>' % suffix_text
 
     def prepare_anchor(self, anchor):
-        if not anchor:
-            raise EmitterError("anchor must not be empty")
         for ch in anchor:
             if not ('0' <= ch <= '9' or 'A' <= ch <= 'Z' or 'a' <= ch <= 'z'    \
                     or ch in '-_'):

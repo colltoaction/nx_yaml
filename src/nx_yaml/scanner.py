@@ -1112,8 +1112,7 @@ class NxScanner:
             chunks.extend(breaks)
 
         # We are done.
-        return ('<scalar>', ''.join(chunks), False, start_mark, end_mark,
-                style)
+        return ('<scalar>', start_mark, end_mark, ''.join(chunks), False, style)
 
     def scan_block_scalar_indicators(self, start_mark):
         # See the specification for details.
@@ -1218,8 +1217,7 @@ class NxScanner:
             chunks.extend(self.scan_flow_scalar_non_spaces(double, start_mark))
         self.forward()
         end_mark = self.get_mark()
-        return ('<scalar>', ''.join(chunks), False, start_mark, end_mark,
-                style)
+        return ('<scalar>', start_mark, end_mark, ''.join(chunks), False, style)
 
     ESCAPE_REPLACEMENTS = {
         '0':    '\0',
@@ -1372,7 +1370,7 @@ class NxScanner:
             if not spaces or self.peek() == '#' \
                     or (not self.flow_level and self.column < indent):
                 break
-        return ('<scalar>', ''.join(chunks), True, start_mark, end_mark)
+        return ('<scalar>', start_mark, end_mark, ''.join(chunks), True, None)
 
     def scan_plain_spaces(self, indent, start_mark):
         # See the specification for details.
@@ -1685,7 +1683,7 @@ class NxScanner:
     def parse_node(self, block=False, indentless_sequence=False):
         if self.check_token('<alias>'):
             token = self.get_token()
-            event = ("AliasEvent", token[2], token[1], token[2])
+            event = ("AliasEvent", token[1], token[2], token[3])
             self.state = self.states.pop()
         else:
             anchor = None
@@ -1695,21 +1693,21 @@ class NxScanner:
                 token = self.get_token()
                 start_mark = token[1]
                 end_mark = token[2]
-                anchor = token[2]
+                anchor = token[3]
                 if self.check_token('<tag>'):
                     token = self.get_token()
                     tag_mark = token[1]
                     end_mark = token[2]
-                    tag = token[2]
+                    tag = token[4]
             elif self.check_token('<tag>'):
                 token = self.get_token()
                 start_mark = tag_mark = token[1]
                 end_mark = token[2]
-                tag = token[2]
+                tag = token[4]
                 if self.check_token('<anchor>'):
                     token = self.get_token()
                     end_mark = token[2]
-                    anchor = token[2]
+                    anchor = token[3]
             if tag is not None:
                 handle, suffix = tag
                 if handle is not None:
@@ -1742,7 +1740,7 @@ class NxScanner:
                         implicit = (False, True)
                     else:
                         implicit = (False, False)
-                    event = ("ScalarEvent", start_mark, end_mark, anchor, tag, implicit, token[2], token[5])
+                    event = ("ScalarEvent", start_mark, end_mark, anchor, tag, implicit, token[4], token[5])
                     self.state = self.states.pop()
                 elif self.check_token('['):
                     end_mark = self.peek_token()[2]
@@ -1893,7 +1891,7 @@ class NxScanner:
             
             if self.check_token('?'):
                 token = self.peek_token()
-                event = ("MappingStartEvent", None, None, True,
+                event = ("MappingStartEvent", token[1], token[2], True,
                         token[1], token[2],
                         True)
                 self.state = self.parse_flow_sequence_entry_mapping_key
