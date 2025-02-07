@@ -11,17 +11,15 @@ from yaml.representer import SafeRepresenter
 from yaml.resolver import BaseResolver
 
 from .composer import NxComposer
-from .parser import NxParser
 from .scanner import NxScanner
 from .serializer import NxSerializer
 
 # TODO using CParser doesn't integrate well
-class NxSafeLoader(Reader, NxScanner, NxParser, NxComposer, SafeConstructor, BaseResolver):
+class NxSafeLoader(Reader, NxScanner, NxComposer, SafeConstructor, BaseResolver):
 
     def __init__(self, stream):
         Reader.__init__(self, stream)
         NxScanner.__init__(self)
-        NxParser.__init__(self)
         NxComposer.__init__(self)
         SafeConstructor.__init__(self)
         BaseResolver.__init__(self)
