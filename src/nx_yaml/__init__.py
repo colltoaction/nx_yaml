@@ -5,24 +5,15 @@ __all__ = [
 
 import io
 
-from yaml.constructor import SafeConstructor
 from yaml.reader import Reader
-from yaml.representer import SafeRepresenter
-from yaml.resolver import BaseResolver
 
-from .composer import NxComposer
 from .scanner import NxScanner
 from .serializer import NxSerializer
 
-# TODO using CParser doesn't integrate well
-class NxSafeLoader(Reader, NxScanner, NxComposer, SafeConstructor, BaseResolver):
-
+class NxSafeLoader(Reader, NxScanner):
     def __init__(self, stream):
         Reader.__init__(self, stream)
         NxScanner.__init__(self)
-        NxComposer.__init__(self)
-        SafeConstructor.__init__(self)
-        BaseResolver.__init__(self)
 
 class NxSafeDumper(NxSerializer):
     def __init__(self, stream):
