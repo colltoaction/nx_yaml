@@ -1,6 +1,8 @@
 # nx_yaml
 `nx_yaml` is a general purpose Hypergraph Intermediate Representation for [YAML](https://yaml.org/spec/1.2.2) using [NetworkX](https://github.com/networkx/networkx). It provides native semantics for higher-order applications such as Hypergraph Analysis, Quantum Computing, Geometric Deep Learning and Monoidal Computing.
 
+There are two notebook tutorials: [a basic one](tutorial.ipynb) and an advanced one using [XGI](xgi.ipynb) for higher-order interpretation.
+
 ## Design
 Graph Theory is well established in compiler infrastructure, popularized by the use of Abstract Syntax Trees, and recently projects such as [MLIR](https://mlir.llvm.org/docs/Rationale/RationaleGenericDAGRewriter/) have further explored Direct Acyclic Graphs. This project formalizes a [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph) IR with native semantics for higher-order applications such as:
 * Hypergraph Analysis: https://github.com/pnnl/HyperNetX

@@ -62,9 +62,25 @@ def test_combination():
 def _test_representation_to_native(expected_yaml, expected_gml):
     original_string = Path(expected_yaml).read_text()
     composed_graph = nx_compose_all(original_string)
-    # TODO remove sanity check
-    # nx.write_gml(composed_graph, expected_gml)
+    # out = print_composed_graph_gml(composed_graph)
+    # Path(expected_gml).write_text(out)
     original_graph = nx.read_gml(expected_gml)
     serialized_string = nx_serialize_all(original_graph)
     assert original_string == serialized_string
     assert nx.is_isomorphic(original_graph, composed_graph)
+
+def print_composed_graph_gml(composed_graph):
+    out = "graph [\n    directed 1"
+    for n, d in composed_graph.nodes(data=True):
+        out += f"\n    node [\n        id {n}\n        label {n}\n        bipartite {d["bipartite"]}"
+        if d.get("kind"):
+            out += f"\n        kind \"{d["kind"]}\""
+        if d.get("tag"):
+            out += f"\n        tag \"{d["tag"]}\""
+        if d.get("value"):
+            out += f"\n        value \"{d["value"]}\""
+        out += f"\n    ]"
+    for e0, e1, d in composed_graph.edges(data=True):
+        out += f"\n    edge [\n        source {e0}\n        target {e1}\n    ]"
+    out += "\n]"
+    return out

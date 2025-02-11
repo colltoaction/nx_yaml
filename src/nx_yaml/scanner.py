@@ -1117,7 +1117,7 @@ class NxScanner:
             chunks.extend(breaks)
 
         # We are done.
-        return ('<scalar>', start_mark, end_mark, ''.join(chunks), False, style)
+        return ('<scalar>', start_mark, end_mark, False, style, ''.join(chunks))
 
     def scan_block_scalar_indicators(self, start_mark):
         # See the specification for details.
@@ -1222,7 +1222,7 @@ class NxScanner:
             chunks.extend(self.scan_flow_scalar_non_spaces(double, start_mark))
         self.forward()
         end_mark = self.get_mark()
-        return ('<scalar>', start_mark, end_mark, ''.join(chunks), False, style)
+        return ('<scalar>', start_mark, end_mark, False, style, ''.join(chunks))
 
     ESCAPE_REPLACEMENTS = {
         '0':    '\0',
@@ -1375,7 +1375,7 @@ class NxScanner:
             if not spaces or self.peek() == '#' \
                     or (not self.flow_level and self.column < indent):
                 break
-        return ('<scalar>', start_mark, end_mark, ''.join(chunks), True, None)
+        return ('<scalar>', start_mark, end_mark, True, None, ''.join(chunks))
 
     def scan_plain_spaces(self, indent, start_mark):
         # See the specification for details.
@@ -2005,22 +2005,20 @@ class NxScanner:
             raise ComposerError(None, None, f"expected StreamStartEvent not {self.peek_event()[0]}")
 
         # Compose the root node.
-        stream_start_event = self.get_event()
+        start_event = self.get_event()
         node = nx.DiGraph()
-        node.add_node(0, bipartite=0, kind="stream")
-        node.add_node(1, bipartite=1)
-        node.add_edge(0, 1, event="start")
+        node.add_node(0, bipartite=0, kind="_")
+        node.add_node(1, bipartite=1, kind="stream")
+        node.add_node(2, bipartite=1, kind="event")
+        node.add_edge(0, 1)
+        node.add_edge(0, 2)
+        # node.add_edge(2, 0, start_event=start_event)
 
         while not self.peek_event()[0] == "StreamEndEvent":
             self.compose_document(node, 0, node.number_of_nodes())
 
-        # # TODO many documents
-        # # Ensure that the stream contains no more documents.
-        # if self.peek_event()[0] == "StreamEndEvent":
-        #     raise ComposerError("expected a single document in the stream",
-        #             None, "but found another document")
-
-        stream_end_event = self.get_event()
+        end_event = self.get_event()
+        # node.add_edge(2, end_event=end_event)
 
         self.anchors = {}
         return node
@@ -2030,21 +2028,27 @@ class NxScanner:
             raise ComposerError(None, None, f"expected DocumentStartEvent not {self.peek_event()[0]}")
 
         # Drop the DOCUMENT-START event.
-        self.get_event()
+        start_event = self.get_event()
 
         # Compose the root node.
-        node.add_node(index,
-                bipartite=0, kind="document")
-        node.add_node(index+1, bipartite=1)
-        node.add_edge(index, index+1)
-        node.add_edge(parent+1, index, event="start")
-        self.compose_node(node, index, index+2)
+        node.add_node(index, bipartite=0, kind="_")
+        node.add_node(index+1, bipartite=1, kind="document")
+        node.add_node(index+2, bipartite=1, kind="event")
+        node.add_node(index+3, bipartite=0, kind="event", tag=start_event[0])
+        node.add_edge(index, index+1, direction="tail")
+        node.add_edge(parent+1, index)
+        node.add_edge(index, index+2)
+        node.add_edge(parent+2, index+3, start_event=start_event)
+        self.compose_node(node, index, index+4)
 
         if not self.peek_event()[0] == "DocumentEndEvent":
             raise ComposerError(None, None, f"expected DocumentEndEvent not {self.peek_event()[0]}")
 
         # Drop the DOCUMENT-END event.
-        self.get_event()
+        end_event = self.get_event()
+        k = node.number_of_nodes()
+        node.add_node(k, bipartite=0, kind="event", tag=end_event[0])
+        node.add_edge(parent+2, k, end_event=end_event)
 
         self.anchors = {}
 
@@ -2064,78 +2068,97 @@ class NxScanner:
         if not self.peek_event()[0] == "AliasEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         event = self.get_event()
-        (_, start_mark, end_mark, anchor) = event
+        (start_event_name, start_mark, end_mark, anchor) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index,
-                bipartite=0,
+        node.add_node(index, bipartite=0, kind="_")
+        node.add_node(index+1,
+                bipartite=1,
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 kind="alias", anchor=anchor or "")
-        node.add_node(index+1, bipartite=1)
-        node.add_edge(parent+1, index)
+        node.add_node(index+2, bipartite=1, kind="event")
+        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
         node.add_edge(index, index+1, direction="tail")
+        node.add_edge(parent+1, index)
+        node.add_edge(index, index+2)
+        node.add_edge(parent+2, index+3, event=event)
         return node
 
     def compose_scalar_node(self, node, parent, index):
         if not self.peek_event()[0] == "ScalarEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         event = self.get_event()
-        (_, start_mark, end_mark, anchor, tag, implicit, value, style) = event
+        (start_event_name, start_mark, end_mark, anchor, tag, implicit, style, value) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index,
-                bipartite=0,
+        node.add_node(index, bipartite=0, kind="_")
+        node.add_node(index+1,
+                bipartite=1,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 style=style or "",
                 kind="scalar", tag=tag or "", value=value or "", anchor=anchor or "")
-        node.add_node(index+1, bipartite=1)
-        node.add_edge(parent+1, index)
+        node.add_node(index+2, bipartite=1, kind="event")
+        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
         node.add_edge(index, index+1, direction="tail")
+        node.add_edge(parent+1, index)
+        node.add_edge(index, index+2)
+        node.add_edge(parent+2, index+3, event=event)
         return node
 
     def compose_sequence_node(self, node, parent, index):
         if not self.peek_event()[0] == "SequenceStartEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         start_event = self.get_event()
-        (_, start_mark, end_mark, anchor, tag, implicit, flow_style) = start_event
+        (start_event_name, start_mark, end_mark, anchor, tag, implicit, flow_style) = start_event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index,
-                bipartite=0,
+        node.add_node(index, bipartite=0, kind="_")
+        node.add_node(index+1,
+                bipartite=1,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="sequence", tag=tag or "", anchor=anchor or "")
-        node.add_node(index+1, bipartite=1)
+        node.add_node(index+2, bipartite=1, kind="event")
+        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
         node.add_edge(index, index+1, direction="tail")
         node.add_edge(parent+1, index)
+        node.add_edge(index, index+2)
+        node.add_edge(parent+2, index+3, start_event=start_event)
         while not self.peek_event()[0] == "SequenceEndEvent":
             k = node.number_of_nodes()
             self.compose_node(node, index, k)
         end_event = self.get_event()
+        k = node.number_of_nodes()
+        node.add_node(k, bipartite=0, kind="event", tag=end_event[0])
+        node.add_edge(parent+2, k, end_event=end_event)
         return node
 
     def compose_mapping_node(self, node, parent, index):
         if not self.peek_event()[0] == "MappingStartEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         start_event = self.get_event()
-        (_, start_mark, end_mark, anchor, tag, implicit, flow_style) = start_event
+        (start_event_name, start_mark, end_mark, anchor, tag, implicit, flow_style) = start_event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index,
-                bipartite=0,
+        node.add_node(index, bipartite=0, kind="_")
+        node.add_node(index+1,
+                bipartite=1,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="mapping", tag=tag or "", anchor=anchor or "")
-        node.add_node(index+1, bipartite=1)
+        node.add_node(index+2, bipartite=1, kind="event")
+        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
         node.add_edge(index, index+1, direction="tail")
         node.add_edge(parent+1, index)
+        node.add_edge(index, index+2)
+        node.add_edge(parent+2, index+3, start_event=start_event)
 
         while not self.peek_event()[0] == "MappingEndEvent":
             k = node.number_of_nodes()
@@ -2144,4 +2167,7 @@ class NxScanner:
             self.compose_node(node, index, v)
 
         end_event = self.get_event()
+        k = node.number_of_nodes()
+        node.add_node(k, bipartite=0, kind="event", tag=end_event[0])
+        node.add_edge(parent+2, k, end_event=end_event)
         return node

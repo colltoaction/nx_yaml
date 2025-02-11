@@ -132,7 +132,7 @@ class NxSerializer:
         # 1. the representation graph
         # 2. the serialization tree
         # TODO iterating vs mapping representation
-        k = node.nodes[index].get("kind")
+        k = node.nodes[index+1].get("kind")
         if k == "stream":
             self.emit_stream(node, parent, index)
         elif k == "document":
@@ -156,19 +156,16 @@ class NxSerializer:
 
     def emit_sequence(self, node, parent, index):
         self.emit("SequenceStartEvent", node, parent, index)
-        # TODO abstract over "index + 1"
-        # TODO use edge attributes
-        for e in node[index + 1]:
-            if e != index:
-                self.emit_node(node, None, e)
+        for e in node[index+1]:
+            self.emit_node(node, index, e)
         self.emit("SequenceEndEvent", node, parent, index)
 
     def emit_mapping(self, node, parent, index):
         self.emit("MappingStartEvent", node, parent, index)
         # TODO use edge attributes
-        for e0, e1 in batched((n for n in node[index + 1] if n != index), 2):
-            self.emit_node(node, None, e0)
-            self.emit_node(node, None, e1)
+        for e0, e1 in batched(node[index+1], 2):
+            self.emit_node(node, index, e0)
+            self.emit_node(node, index, e1)
         self.emit("MappingEndEvent", node, parent, index)
 
     # TODO remove unnecessary queue
@@ -514,7 +511,7 @@ class NxSerializer:
             length += len(self.prepared_tag)
         if self.event[0] == "ScalarEvent":
             if self.analysis is None:
-                self.analysis = self.analyze_scalar(event_get(self.event, "value"))
+                self.analysis = self.analyze_scalar(event_get(self.event, "value") or "")
             length += len(self.analysis.scalar)
         return (length < 128 and (self.event[0] == "AliasEvent"
             or (self.event[0] == "ScalarEvent"
@@ -560,7 +557,7 @@ class NxSerializer:
 
     def choose_scalar_style(self):
         if self.analysis is None:
-            self.analysis = self.analyze_scalar(event_get(self.event, "value"))
+            self.analysis = self.analyze_scalar(event_get(self.event, "value") or "")
         if event_get(self.event, "style") == '"' or event_get(self.event, "canonical"):
             return '"'
         if not event_get(self.event, "style") and event_get(self.event, "implicit[0]"):
@@ -581,7 +578,7 @@ class NxSerializer:
 
     def process_scalar(self):
         if self.analysis is None:
-            self.analysis = self.analyze_scalar(event_get(self.event, "value"))
+            self.analysis = self.analyze_scalar(event_get(self.event, "value") or "")
         if self.style is None:
             self.style = self.choose_scalar_style()
         split = (not self.simple_key_context)
@@ -1205,4 +1202,4 @@ class NxSerializer:
             end += 1
 
 def event_get(event, p):
-    return event[1].nodes[event[3]].get(p)
+    return event[1].nodes[event[3]+1].get(p)
