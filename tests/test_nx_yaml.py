@@ -59,6 +59,18 @@ def test_combination():
     _test_representation_to_native(expected_yaml, expected_gml)
 
 
+def test_tags():
+    expected_yaml = "tests/resources/yaml/tags.yaml"
+    expected_gml = "tests/resources/networkx/tags.gml"
+    _test_representation_to_native(expected_yaml, expected_gml)
+
+
+def test_tags_2():
+    expected_yaml = "tests/resources/yaml/tags_2.yaml"
+    expected_gml = "tests/resources/networkx/tags_2.gml"
+    _test_representation_to_native(expected_yaml, expected_gml)
+
+
 def _test_representation_to_native(expected_yaml, expected_gml):
     original_string = Path(expected_yaml).read_text()
     composed_graph = nx_compose_all(original_string)

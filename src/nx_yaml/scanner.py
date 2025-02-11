@@ -1042,7 +1042,7 @@ class NxScanner:
                     "expected ' ', but found %r" % ch, self.get_mark())
         value = (handle, suffix)
         end_mark = self.get_mark()
-        return TagToken(value, start_mark, end_mark)
+        return ('<tag>', start_mark, end_mark, value)
 
     def scan_block_scalar(self, style):
         # See the specification for details.
@@ -1703,12 +1703,12 @@ class NxScanner:
                     token = self.get_token()
                     tag_mark = token[1]
                     end_mark = token[2]
-                    tag = token[4]
+                    tag = token[3]
             elif self.check_token('<tag>'):
                 token = self.get_token()
                 start_mark = tag_mark = token[1]
                 end_mark = token[2]
-                tag = token[4]
+                tag = token[3]
                 if self.check_token('<anchor>'):
                     token = self.get_token()
                     end_mark = token[2]
@@ -1769,7 +1769,7 @@ class NxScanner:
                 elif anchor is not None or tag is not None:
                     # Empty scalars are allowed even if a tag or an anchor is
                     # specified.
-                    event = ("ScalarEvent", start_mark, end_mark, anchor, tag, implicit, '')
+                    event = ("ScalarEvent", start_mark, end_mark, anchor, tag, implicit, '', '')
                     self.state = self.states.pop()
                 else:
                     if block:
@@ -1896,9 +1896,7 @@ class NxScanner:
             
             if self.check_token('?'):
                 token = self.peek_token()
-                event = ("MappingStartEvent", token[1], token[2], True,
-                        token[1], token[2],
-                        True)
+                event = ("MappingStartEvent", token[1], token[2], "", "", False, '')
                 self.state = self.parse_flow_sequence_entry_mapping_key
                 return event
             elif not self.check_token(']'):
