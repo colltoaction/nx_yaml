@@ -2005,18 +2005,18 @@ class NxScanner:
         # Compose the root node.
         start_event = self.get_event()
         node = nx.DiGraph()
-        node.add_node(0, bipartite=0, kind="_")
-        node.add_node(1, bipartite=1, kind="stream")
-        node.add_node(2, bipartite=1, kind="event")
-        node.add_edge(0, 1)
-        node.add_edge(0, 2)
-        # node.add_edge(2, 0, start_event=start_event)
+        node.add_node(0, bipartite=0, kind="stream")
+        node.add_node(1, bipartite=1, kind="event", tag=start_event[0])
+        node.add_edge(1, 0)
 
         while not self.peek_event()[0] == "StreamEndEvent":
             self.compose_document(node, 0, node.number_of_nodes())
 
         end_event = self.get_event()
-        # node.add_edge(2, end_event=end_event)
+        k = node.number_of_nodes()
+        node.add_node(k, bipartite=1, kind="event", tag=end_event[0])
+        node.add_edge(k, 0)
+        node.add_edge(2, k)
 
         self.anchors = {}
         return node
@@ -2029,15 +2029,12 @@ class NxScanner:
         start_event = self.get_event()
 
         # Compose the root node.
-        node.add_node(index, bipartite=0, kind="_")
-        node.add_node(index+1, bipartite=1, kind="document")
-        node.add_node(index+2, bipartite=1, kind="event")
-        node.add_node(index+3, bipartite=0, kind="event", tag=start_event[0])
-        node.add_edge(index, index+1, direction="tail")
-        node.add_edge(parent+1, index)
-        node.add_edge(index, index+2)
-        node.add_edge(parent+2, index+3, start_event=start_event)
-        self.compose_node(node, index, index+4)
+        node.add_node(index, bipartite=0, kind="document")
+        node.add_node(index+1, bipartite=1, kind="event", tag=start_event[0])
+        node.add_edge(index+1, index)
+        # node.add_edge(parent+1, index)
+        node.add_edge(parent, index+1)
+        self.compose_node(node, index, index+2)
 
         if not self.peek_event()[0] == "DocumentEndEvent":
             raise ComposerError(None, None, f"expected DocumentEndEvent not {self.peek_event()[0]}")
@@ -2045,8 +2042,9 @@ class NxScanner:
         # Drop the DOCUMENT-END event.
         end_event = self.get_event()
         k = node.number_of_nodes()
-        node.add_node(k, bipartite=0, kind="event", tag=end_event[0])
-        node.add_edge(parent+2, k, end_event=end_event)
+        node.add_node(k, bipartite=1, kind="event", tag=end_event[0])
+        node.add_edge(k, index)
+        node.add_edge(index+2, k)
 
         self.anchors = {}
 
@@ -2069,18 +2067,15 @@ class NxScanner:
         (start_event_name, start_mark, end_mark, anchor) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index, bipartite=0, kind="_")
-        node.add_node(index+1,
-                bipartite=1,
+        node.add_node(index,
+                bipartite=0,
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 kind="alias", anchor=anchor or "")
-        node.add_node(index+2, bipartite=1, kind="event")
-        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
-        node.add_edge(index, index+1, direction="tail")
+        node.add_node(index+1, bipartite=1, kind="event", tag=start_event_name)
+        node.add_edge(index+1, index)
         node.add_edge(parent+1, index)
-        node.add_edge(index, index+2)
-        node.add_edge(parent+2, index+3, event=event)
+        node.add_edge(index+1, parent, event=event)
         return node
 
     def compose_scalar_node(self, node, parent, index):
@@ -2090,20 +2085,16 @@ class NxScanner:
         (start_event_name, start_mark, end_mark, anchor, tag, implicit, style, value) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index, bipartite=0, kind="_")
-        node.add_node(index+1,
-                bipartite=1,
+        node.add_node(index,
+                bipartite=0,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 style=style or "",
                 kind="scalar", tag=tag or "", value=value or "", anchor=anchor or "")
-        node.add_node(index+2, bipartite=1, kind="event")
-        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
-        node.add_edge(index, index+1, direction="tail")
-        node.add_edge(parent+1, index)
-        node.add_edge(index, index+2)
-        node.add_edge(parent+2, index+3, event=event)
+        node.add_node(index+1, bipartite=1, kind="event", tag=start_event_name)
+        node.add_edge(index+1, index)
+        node.add_edge(parent, index+1)
         return node
 
     def compose_sequence_node(self, node, parent, index):
@@ -2113,27 +2104,24 @@ class NxScanner:
         (start_event_name, start_mark, end_mark, anchor, tag, implicit, flow_style) = start_event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index, bipartite=0, kind="_")
-        node.add_node(index+1,
-                bipartite=1,
+        node.add_node(index,
+                bipartite=0,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="sequence", tag=tag or "", anchor=anchor or "")
-        node.add_node(index+2, bipartite=1, kind="event")
-        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
-        node.add_edge(index, index+1, direction="tail")
+        node.add_node(index+1, bipartite=1, kind="event", tag=start_event_name)
+        node.add_edge(index+1, index)
         node.add_edge(parent+1, index)
-        node.add_edge(index, index+2)
-        node.add_edge(parent+2, index+3, start_event=start_event)
+        node.add_edge(index+1, parent, start_event=start_event)
         while not self.peek_event()[0] == "SequenceEndEvent":
             k = node.number_of_nodes()
             self.compose_node(node, index, k)
         end_event = self.get_event()
         k = node.number_of_nodes()
-        node.add_node(k, bipartite=0, kind="event", tag=end_event[0])
-        node.add_edge(parent+2, k, end_event=end_event)
+        node.add_node(k, bipartite=1, kind="event", tag=end_event[0])
+        node.add_edge(parent, k, end_event=end_event)
         return node
 
     def compose_mapping_node(self, node, parent, index):
@@ -2143,29 +2131,30 @@ class NxScanner:
         (start_event_name, start_mark, end_mark, anchor, tag, implicit, flow_style) = start_event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        node.add_node(index, bipartite=0, kind="_")
-        node.add_node(index+1,
-                bipartite=1,
+        node.add_node(index,
+                bipartite=0,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="mapping", tag=tag or "", anchor=anchor or "")
-        node.add_node(index+2, bipartite=1, kind="event")
-        node.add_node(index+3, bipartite=0, kind="event", tag=start_event_name)
-        node.add_edge(index, index+1, direction="tail")
-        node.add_edge(parent+1, index)
-        node.add_edge(index, index+2)
-        node.add_edge(parent+2, index+3, start_event=start_event)
+        node.add_node(index+1, bipartite=1, kind="event", tag=start_event_name)
+        node.add_edge(index+1, index)
+        # node.add_edge(parent+1, index)
+        node.add_edge(parent, index+1)
 
         while not self.peek_event()[0] == "MappingEndEvent":
             k = node.number_of_nodes()
             self.compose_node(node, index, k)
             v = node.number_of_nodes()
-            self.compose_node(node, index, v)
+            self.compose_node(node, k, v)
 
         end_event = self.get_event()
         k = node.number_of_nodes()
-        node.add_node(k, bipartite=0, kind="event", tag=end_event[0])
-        node.add_edge(parent+2, k, end_event=end_event)
+        node.add_node(k, bipartite=1, kind="event", tag=end_event[0])
+        # node.add_edge(k, parent)
+        # node.add_edge(k, index)
+        node.add_edge(v, k)
+        node.add_edge(k, parent)
+        # node.add_edge(index+2, k)
         return node
