@@ -13,6 +13,8 @@ from itertools import batched
 from yaml.emitter import EmitterError, ScalarAnalysis
 from yaml.serializer import SerializerError
 
+from .nx_hif.hif import *
+
 
 class NxSerializer:
 
@@ -117,22 +119,23 @@ class NxSerializer:
 
     def emit_stream(self, node, parent, index):
         self.emit("StreamStartEvent", node, parent, index)
-        for n in node[index+1]:
-            self.emit_node(node, index, n)
+        for n in hif_edge_nodes(node, index+1):
+            if n != parent:
+                self.emit_node(node, index, n)
         self.emit("StreamEndEvent", node, parent, index)
 
     def generate_anchor(self, node):
         self.last_anchor_id += 1
         return self.ANCHOR_TEMPLATE % self.last_anchor_id
 
-    def emit_node(self, node, parent, index):
+    def emit_node(self, node: HyperGraph, parent, index):
         if not node:
             return
         # TODO we have two representations in the spec:
         # 1. the representation graph
         # 2. the serialization tree
         # TODO iterating vs mapping representation
-        k = node.nodes[index+1].get("kind")
+        k = hif_edge(node, index+1).get("kind")
         if k == "stream":
             self.emit_stream(node, parent, index)
         elif k == "document":
@@ -1202,4 +1205,5 @@ class NxSerializer:
             end += 1
 
 def event_get(event, p):
+    return hif_edge(event[1], event[3]+1).get(p)
     return event[1].nodes[event[3]+1].get(p)

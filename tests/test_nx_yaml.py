@@ -1,5 +1,7 @@
 from pathlib import Path
 import networkx as nx
+from .hif import *
+from .readwrite import *
 import yaml
 
 from src.nx_yaml import NxSafeDumper, NxSafeLoader, nx_serialize_all, nx_compose_all
@@ -7,8 +9,8 @@ from src.nx_yaml import NxSafeDumper, NxSafeLoader, nx_serialize_all, nx_compose
 
 def test_empty():
     expected_yaml = "tests/resources/yaml/empty.yaml"
-    expected_gml = "tests/resources/networkx/empty.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/empty.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def test_single_node():
@@ -71,15 +73,16 @@ def test_tags_2():
     _test_representation_to_native(expected_yaml, expected_gml)
 
 
-def _test_representation_to_native(expected_yaml, expected_gml):
+def _test_representation_to_native(expected_yaml, expected_hif):
     original_string = Path(expected_yaml).read_text()
     composed_graph = nx_compose_all(original_string)
-    # out = print_composed_graph_gml(composed_graph)
-    # Path(expected_gml).write_text(out)
-    original_graph = nx.read_gml(expected_gml)
+    # out = print_composed_graph_hif(composed_graph)
+    # Path(expected_hif).write_text(out)
+    original_graph = read_hif(expected_hif)
     serialized_string = nx_serialize_all(original_graph)
     assert original_string == serialized_string
-    assert nx.is_isomorphic(original_graph, composed_graph)
+    assert not print(composed_graph[2].nodes)
+    assert nx.is_isomorphic(original_graph[2], composed_graph[2])
 
 def print_composed_graph_gml(composed_graph):
     out = "graph [\n    directed 1"

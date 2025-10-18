@@ -1,0 +1,12 @@
+{
+    "incidences": [
+        {"edge": 1, "node": 0},
+        {"edge": 2, "node": 0}
+    ],
+    "edges": [
+        {"edge": 1, "attrs": {"kind": "stream"}}
+    ],
+    "nodes": [
+        {"node": 2}
+    ]
+}
