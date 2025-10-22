@@ -57,8 +57,8 @@ def test_two_documents():
 
 def test_combination():
     expected_yaml = "tests/resources/yaml/combination.yaml"
-    expected_gml = "tests/resources/networkx/combination.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/combination.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def test_tags():

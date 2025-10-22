@@ -2116,7 +2116,7 @@ class NxScanner:
         end_event = self.get_event()
         k = hif_number_of_all(node)
         hif_add_edge(node, k, kind="event", tag=end_event[0])
-        hif_add_incidence(node, k, parent)
+        hif_add_incidence(node, k, index)
         return node
 
     def compose_mapping_node(self, node, parent, index):
@@ -2145,5 +2145,5 @@ class NxScanner:
         end_event = self.get_event()
         k = hif_number_of_all(node)
         hif_add_edge(node, k, kind="event", tag=end_event[0])
-        hif_add_incidence(node, k, parent)
+        hif_add_incidence(node, k, index)
         return node
