@@ -2008,16 +2008,16 @@ class NxScanner:
         node = hif_create()
         hif_add_node(node, 0, kind="stream")
         hif_add_edge(node, 1, kind="event", tag=start_event[0])
-        hif_add_incidence(node, 1, 0)
+        hif_add_incidence(node, 1, 0, "tail")
 
         while not self.peek_event()[0] == "StreamEndEvent":
-            # TODO why do we pass a non-existing index?
-            self.compose_document(node, 0, hif_number_of_all(node))
+            index = hif_number_of_all(node)
+            self.compose_document(node, 0, index)
 
         end_event = self.get_event()
         k = hif_number_of_all(node)
         hif_add_edge(node, k, kind="event", tag=end_event[0])
-        hif_add_incidence(node, k, 0)
+        hif_add_incidence(node, k, 0, "tail")
 
         self.anchors = {}
         return node

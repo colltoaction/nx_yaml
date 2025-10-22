@@ -51,8 +51,8 @@ def test_alias():
 
 def test_two_documents():
     expected_yaml = "tests/resources/yaml/two_documents.yaml"
-    expected_gml = "tests/resources/networkx/two_documents.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/two_documents.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def test_combination():
