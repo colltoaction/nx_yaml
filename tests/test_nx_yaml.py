@@ -21,8 +21,8 @@ def test_single_node():
 
 def test_two_node_mapping():
     expected_yaml = "tests/resources/yaml/two_node_mapping.yaml"
-    expected_gml = "tests/resources/networkx/two_node_mapping.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/two_node_mapping.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def test_two_node_list():

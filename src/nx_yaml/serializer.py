@@ -114,19 +114,15 @@ class NxSerializer:
     def emit_document(self, node, parent, index):
         self.emit("DocumentStartEvent", node, parent, index)
         for e in hif_node_edges(node, index):
-            if hif_incidence(node, e, index)["direction"] == "head":
-                for n in hif_edge_nodes(node, e):
-                    if hif_incidence(node, e, n)["direction"] == "tail":
-                        self.emit_node(node, index, n)
+            for n in hif_edge_nodes(node, e, "tail"):
+                self.emit_node(node, index, n)
         self.emit("DocumentEndEvent", node, parent, index)
 
     def emit_stream(self, node, parent, index):
         self.emit("StreamStartEvent", node, parent, index)
         for e in hif_node_edges(node, index):
-            if hif_incidence(node, e, index)["direction"] == "head":
-                for n in hif_edge_nodes(node, e):
-                    if hif_incidence(node, e, n)["direction"] == "tail":
-                        self.emit_node(node, index, n)
+            for n in hif_edge_nodes(node, e, "tail"):
+                self.emit_node(node, index, n)
         self.emit("StreamEndEvent", node, parent, index)
 
     def generate_anchor(self, node):
@@ -170,10 +166,12 @@ class NxSerializer:
 
     def emit_mapping(self, node, parent, index):
         self.emit("MappingStartEvent", node, parent, index)
-        # TODO use edge attributes
-        for e0, e1 in batched(node[index+1], 2):
-            self.emit_node(node, index, e0)
-            self.emit_node(node, index, e1)
+        # TODO this assumes an ordering in the edges
+        for e0, e1 in batched(hif_node_edges(node, index), 2):
+            (n0, ) = hif_edge_nodes(node, e0, "tail")
+            (n1, ) = hif_edge_nodes(node, e1, "tail")
+            self.emit_node(node, index, n0)
+            self.emit_node(node, index, n1)
         self.emit("MappingEndEvent", node, parent, index)
 
     # TODO remove unnecessary queue

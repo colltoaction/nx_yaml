@@ -2142,11 +2142,10 @@ class NxScanner:
             k = hif_number_of_all(node)
             self.compose_node(node, index, k)
             v = hif_number_of_all(node)
-            self.compose_node(node, k, v)
+            self.compose_node(node, index, v)
 
         end_event = self.get_event()
         k = hif_number_of_all(node)
         hif_add_edge(node, k, kind="event", tag=end_event[0])
-        hif_add_incidence(node, k, v, "tail")
         hif_add_incidence(node, k, parent)
         return node
