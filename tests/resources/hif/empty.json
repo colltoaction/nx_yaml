@@ -1,12 +1,13 @@
 {
     "incidences": [
-        {"edge": 1, "node": 0},
-        {"edge": 2, "node": 0}
+        {"node": 0, "edge": 1, "direction": "tail"},
+        {"node": 0, "edge": 2, "direction": "tail"}
     ],
     "edges": [
-        {"edge": 1, "attrs": {"kind": "stream"}}
+        {"edge": 1, "attrs": {"kind": "event", "tag": "StreamStartEvent"}},
+        {"edge": 2, "attrs": {"kind": "event", "tag": "StreamEndEvent"}}
     ],
     "nodes": [
-        {"node": 2}
+        {"node": 0, "attrs": {"kind": "stream"}}
     ]
 }
