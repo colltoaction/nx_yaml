@@ -39,8 +39,8 @@ def test_mapping_and_list():
 
 def test_nested_lists():
     expected_yaml = "tests/resources/yaml/nested_lists.yaml"
-    expected_gml = "tests/resources/networkx/nested_lists.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/nested_lists.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def test_alias():
