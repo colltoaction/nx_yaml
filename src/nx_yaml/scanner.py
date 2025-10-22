@@ -2110,15 +2110,14 @@ class NxScanner:
                 kind="sequence", tag=tag or "", anchor=anchor or "")
         hif_add_edge(node, index+1, kind="event", tag=start_event_name)
         hif_add_incidence(node, index+1, index, "tail")
-        hif_add_incidence(node, parent+1, index, "tail")
-        hif_add_incidence(node, index+1, parent, start_event=start_event)
+        hif_add_incidence(node, index+1, parent)
         while not self.peek_event()[0] == "SequenceEndEvent":
             k = hif_number_of_all(node)
             self.compose_node(node, index, k)
         end_event = self.get_event()
         k = hif_number_of_all(node)
         hif_add_edge(node, k, kind="event", tag=end_event[0])
-        hif_add_incidence(node, k, parent, end_event=end_event)
+        hif_add_incidence(node, k, parent)
         return node
 
     def compose_mapping_node(self, node, parent, index):

@@ -160,8 +160,10 @@ class NxSerializer:
 
     def emit_sequence(self, node, parent, index):
         self.emit("SequenceStartEvent", node, parent, index)
-        for e in node[index+1]:
-            self.emit_node(node, index, e)
+        # TODO this assumes an ordering in the edges
+        for e in hif_node_edges(node, index):
+            (n, ) = hif_edge_nodes(node, e, "tail")
+            self.emit_node(node, index, n)
         self.emit("SequenceEndEvent", node, parent, index)
 
     def emit_mapping(self, node, parent, index):
