@@ -45,8 +45,8 @@ def test_nested_lists():
 
 def test_alias():
     expected_yaml = "tests/resources/yaml/alias.yaml"
-    expected_gml = "tests/resources/networkx/alias.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/alias.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def test_two_documents():

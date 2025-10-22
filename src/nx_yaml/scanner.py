@@ -2073,8 +2073,7 @@ class NxScanner:
                 kind="alias", anchor=anchor or "")
         hif_add_edge(node, index+1, kind="event", tag=start_event_name)
         hif_add_incidence(node, index+1, index, "tail")
-        hif_add_incidence(node, parent+1, index, "tail")
-        hif_add_incidence(node, index+1, parent, event=event)
+        hif_add_incidence(node, index+1, parent)
         return node
 
     def compose_scalar_node(self, node, parent, index):

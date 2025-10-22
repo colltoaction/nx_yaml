@@ -330,7 +330,7 @@ class NxSerializer:
             raise EmitterError("expected NodeEvent, but got %s" % self.event[0])
 
     def expect_alias(self):
-        if event_get(self.event, "anchor") is None:
+        if node_get(self.event, "anchor") is None:
             raise EmitterError("anchor is not specified for alias")
         self.process_anchor('*')
         self.state = self.states.pop()
@@ -508,9 +508,9 @@ class NxSerializer:
 
     def check_simple_key(self):
         length = 0
-        if self.event[0] == "NodeEvent" and event_get(self.event, "anchor") is not None:
+        if self.event[0] == "NodeEvent" and node_get(self.event, "anchor") is not None:
             if self.prepared_anchor is None:
-                self.prepared_anchor = self.prepare_anchor(event_get(self.event, "anchor"))
+                self.prepared_anchor = self.prepare_anchor(node_get(self.event, "anchor"))
             length += len(self.prepared_anchor)
         if self.event[0] in ("ScalarEvent", "SequenceStartEvent", "MappingStartEvent")  \
                 and node_get(self.event, "tag") is not None:
@@ -529,11 +529,11 @@ class NxSerializer:
     # Anchor, Tag, and Scalar processors.
 
     def process_anchor(self, indicator):
-        if event_get(self.event, "anchor") is None:
+        if node_get(self.event, "anchor") is None:
             self.prepared_anchor = None
             return
         if self.prepared_anchor is None:
-            self.prepared_anchor = self.prepare_anchor(event_get(self.event, "anchor"))
+            self.prepared_anchor = self.prepare_anchor(node_get(self.event, "anchor"))
         if self.prepared_anchor:
             self.write_indicator(indicator+self.prepared_anchor, True)
         self.prepared_anchor = None
