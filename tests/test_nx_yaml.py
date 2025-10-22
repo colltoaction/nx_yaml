@@ -63,28 +63,25 @@ def test_combination():
 
 def test_tags():
     expected_yaml = "tests/resources/yaml/tags.yaml"
-    expected_gml = "tests/resources/networkx/tags.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/tags.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def test_tags_2():
     expected_yaml = "tests/resources/yaml/tags_2.yaml"
-    expected_gml = "tests/resources/networkx/tags_2.gml"
-    _test_representation_to_native(expected_yaml, expected_gml)
+    expected_hif = "tests/resources/hif/tags_2.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 def _test_representation_to_native(expected_yaml, expected_hif):
     original_string = Path(expected_yaml).read_text()
     composed_graph = nx_compose_all(original_string)
-    # out = print_composed_graph_hif(composed_graph)
-    # Path(expected_hif).write_text(out)
     original_graph = read_hif(expected_hif)
     serialized_string = nx_serialize_all(original_graph)
     assert original_string == serialized_string
-    assert not print(composed_graph[2].nodes)
     assert nx.is_isomorphic(original_graph[2], composed_graph[2])
 
-def print_composed_graph_gml(composed_graph):
+def print_composed_graph_hif(composed_graph):
     out = "graph [\n    directed 1"
     for n, d in composed_graph.nodes(data=True):
         out += f"\n    node [\n        id {n}\n        label {n}\n        bipartite {d["bipartite"]}"
