@@ -1,7 +1,7 @@
 from pathlib import Path
 import networkx as nx
-from .hif import *
-from .readwrite import *
+from nx_hif.hif import *
+from nx_hif.readwrite import *
 import yaml
 
 from src.nx_yaml import NxSafeDumper, NxSafeLoader, nx_serialize_all, nx_compose_all

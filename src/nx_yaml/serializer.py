@@ -13,7 +13,7 @@ from itertools import batched
 from yaml.emitter import EmitterError, ScalarAnalysis
 from yaml.serializer import SerializerError
 
-from .nx_hif.hif import *
+from nx_hif.hif import *
 
 
 class NxSerializer:

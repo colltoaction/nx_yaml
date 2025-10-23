@@ -88,7 +88,7 @@
 __all__ = ['NxScanner']
 
 import networkx as nx
-from .nx_hif.hif import *
+from nx_hif.hif import *
 from yaml.composer import ComposerError
 from yaml.parser import ParserError
 from yaml.scanner import SimpleKey, ScannerError
