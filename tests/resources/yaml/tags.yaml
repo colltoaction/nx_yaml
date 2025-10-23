@@ -1,4 +1,4 @@
 !root
 'first': !empty ''
-!sec 'second':
+!sec 'second': !li
 - !thi 'third'

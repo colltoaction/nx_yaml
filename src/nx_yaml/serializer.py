@@ -13,6 +13,8 @@ from itertools import batched
 from yaml.emitter import EmitterError, ScalarAnalysis
 from yaml.serializer import SerializerError
 
+from nx_hif.hif import *
+
 
 class NxSerializer:
 
@@ -111,28 +113,30 @@ class NxSerializer:
 
     def emit_document(self, node, parent, index):
         self.emit("DocumentStartEvent", node, parent, index)
-        for n in node[index+1]:
-            self.emit_node(node, index, n)
+        for e in hif_node_edges(node, index):
+            for n in hif_edge_nodes(node, e, "tail"):
+                self.emit_node(node, index, n)
         self.emit("DocumentEndEvent", node, parent, index)
 
     def emit_stream(self, node, parent, index):
         self.emit("StreamStartEvent", node, parent, index)
-        for n in node[index+1]:
-            self.emit_node(node, index, n)
+        for e in hif_node_edges(node, index):
+            for n in hif_edge_nodes(node, e, "tail"):
+                self.emit_node(node, index, n)
         self.emit("StreamEndEvent", node, parent, index)
 
     def generate_anchor(self, node):
         self.last_anchor_id += 1
         return self.ANCHOR_TEMPLATE % self.last_anchor_id
 
-    def emit_node(self, node, parent, index):
+    def emit_node(self, node: HyperGraph, parent, index):
         if not node:
             return
         # TODO we have two representations in the spec:
         # 1. the representation graph
         # 2. the serialization tree
         # TODO iterating vs mapping representation
-        k = node.nodes[index+1].get("kind")
+        k = hif_node(node, index).get("kind")
         if k == "stream":
             self.emit_stream(node, parent, index)
         elif k == "document":
@@ -156,16 +160,20 @@ class NxSerializer:
 
     def emit_sequence(self, node, parent, index):
         self.emit("SequenceStartEvent", node, parent, index)
-        for e in node[index+1]:
-            self.emit_node(node, index, e)
+        # TODO this assumes an ordering in the edges
+        for e in hif_node_edges(node, index):
+            (n, ) = hif_edge_nodes(node, e, "tail")
+            self.emit_node(node, index, n)
         self.emit("SequenceEndEvent", node, parent, index)
 
     def emit_mapping(self, node, parent, index):
         self.emit("MappingStartEvent", node, parent, index)
-        # TODO use edge attributes
-        for e0, e1 in batched(node[index+1], 2):
-            self.emit_node(node, index, e0)
-            self.emit_node(node, index, e1)
+        # TODO this assumes an ordering in the edges
+        for e0, e1 in batched(hif_node_edges(node, index), 2):
+            (n0, ) = hif_edge_nodes(node, e0, "tail")
+            (n1, ) = hif_edge_nodes(node, e1, "tail")
+            self.emit_node(node, index, n0)
+            self.emit_node(node, index, n1)
         self.emit("MappingEndEvent", node, parent, index)
 
     # TODO remove unnecessary queue
@@ -322,7 +330,7 @@ class NxSerializer:
             raise EmitterError("expected NodeEvent, but got %s" % self.event[0])
 
     def expect_alias(self):
-        if event_get(self.event, "anchor") is None:
+        if node_get(self.event, "anchor") is None:
             raise EmitterError("anchor is not specified for alias")
         self.process_anchor('*')
         self.state = self.states.pop()
@@ -496,22 +504,22 @@ class NxSerializer:
             return False
         event = self.events[0]
         return (event[0] == "ScalarEvent" and event_get(event, "anchor") is None
-                and event_get(event, "tag") is None and event_get(event, "implicit") and event_get(event, "value") == '')
+                and node_get(event, "tag") is None and event_get(event, "implicit") and node_get(event, "value") == '')
 
     def check_simple_key(self):
         length = 0
-        if self.event[0] == "NodeEvent" and event_get(self.event, "anchor") is not None:
+        if self.event[0] == "NodeEvent" and node_get(self.event, "anchor") is not None:
             if self.prepared_anchor is None:
-                self.prepared_anchor = self.prepare_anchor(event_get(self.event, "anchor"))
+                self.prepared_anchor = self.prepare_anchor(node_get(self.event, "anchor"))
             length += len(self.prepared_anchor)
         if self.event[0] in ("ScalarEvent", "SequenceStartEvent", "MappingStartEvent")  \
-                and event_get(self.event, "tag") is not None:
+                and node_get(self.event, "tag") is not None:
             if self.prepared_tag is None:
-                self.prepared_tag = self.prepare_tag(event_get(self.event, "tag"))
+                self.prepared_tag = self.prepare_tag(node_get(self.event, "tag"))
             length += len(self.prepared_tag)
         if self.event[0] == "ScalarEvent":
             if self.analysis is None:
-                self.analysis = self.analyze_scalar(event_get(self.event, "value") or "")
+                self.analysis = self.analyze_scalar(node_get(self.event, "value") or "")
             length += len(self.analysis.scalar)
         return (length < 128 and (self.event[0] == "AliasEvent"
             or (self.event[0] == "ScalarEvent"
@@ -521,17 +529,17 @@ class NxSerializer:
     # Anchor, Tag, and Scalar processors.
 
     def process_anchor(self, indicator):
-        if event_get(self.event, "anchor") is None:
+        if node_get(self.event, "anchor") is None:
             self.prepared_anchor = None
             return
         if self.prepared_anchor is None:
-            self.prepared_anchor = self.prepare_anchor(event_get(self.event, "anchor"))
+            self.prepared_anchor = self.prepare_anchor(node_get(self.event, "anchor"))
         if self.prepared_anchor:
             self.write_indicator(indicator+self.prepared_anchor, True)
         self.prepared_anchor = None
 
     def process_tag(self):
-        tag = event_get(self.event, "tag")
+        tag = node_get(self.event, "tag")
         if self.event[0] == "ScalarEvent":
             if self.style is None:
                 self.style = self.choose_scalar_style()
@@ -557,7 +565,7 @@ class NxSerializer:
 
     def choose_scalar_style(self):
         if self.analysis is None:
-            self.analysis = self.analyze_scalar(event_get(self.event, "value") or "")
+            self.analysis = self.analyze_scalar(node_get(self.event, "value") or "")
         if event_get(self.event, "style") == '"' or event_get(self.event, "canonical"):
             return '"'
         if not event_get(self.event, "style") and event_get(self.event, "implicit[0]"):
@@ -578,7 +586,7 @@ class NxSerializer:
 
     def process_scalar(self):
         if self.analysis is None:
-            self.analysis = self.analyze_scalar(event_get(self.event, "value") or "")
+            self.analysis = self.analyze_scalar(node_get(self.event, "value") or "")
         if self.style is None:
             self.style = self.choose_scalar_style()
         split = (not self.simple_key_context)
@@ -1202,4 +1210,7 @@ class NxSerializer:
             end += 1
 
 def event_get(event, p):
-    return event[1].nodes[event[3]+1].get(p)
+    return hif_edge(event[1], event[3]+1).get(p)
+
+def node_get(event, p):
+    return hif_node(event[1], event[3]).get(p)
