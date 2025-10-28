@@ -2,9 +2,8 @@ from pathlib import Path
 import networkx as nx
 from nx_hif.hif import *
 from nx_hif.readwrite import *
-import yaml
 
-from src.nx_yaml import NxSafeDumper, NxSafeLoader, nx_serialize_all, nx_compose_all
+from src.nx_yaml import nx_serialize_all, nx_compose_all
 
 
 def test_empty():
@@ -80,19 +79,3 @@ def _test_representation_to_native(expected_yaml, expected_hif):
     serialized_string = nx_serialize_all(original_graph)
     assert original_string == serialized_string
     assert nx.is_isomorphic(original_graph[2], composed_graph[2])
-
-def print_composed_graph_hif(composed_graph):
-    out = "graph [\n    directed 1"
-    for n, d in composed_graph.nodes(data=True):
-        out += f"\n    node [\n        id {n}\n        label {n}\n        bipartite {d["bipartite"]}"
-        if d.get("kind"):
-            out += f"\n        kind \"{d["kind"]}\""
-        if d.get("tag"):
-            out += f"\n        tag \"{d["tag"]}\""
-        if d.get("value"):
-            out += f"\n        value \"{d["value"]}\""
-        out += f"\n    ]"
-    for e0, e1, d in composed_graph.edges(data=True):
-        out += f"\n    edge [\n        source {e0}\n        target {e1}\n    ]"
-    out += "\n]"
-    return out

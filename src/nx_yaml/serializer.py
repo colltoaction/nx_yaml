@@ -111,18 +111,34 @@ class NxSerializer:
         self.anchors = {}
         self.last_anchor_id = 0
 
+    def emit_between(self, node, parent, index):
+        # the event hyperedges preserve order (start->k0->v0->k1->v1->...->end)
+        (start_event_inc, ) = hif_node_incidences(node, index, "tail", key="start")
+        event_node = index
+        ((end_event_edge, _, _, _), ) = hif_node_incidences(node, index, "tail", key="end")
+        ((_, end_event_node, _, _), ) = hif_edge_incidences(node, end_event_edge, "tail", key="start")
+        # 0 or 1
+        event_incs = tuple(hif_node_incidences(node, index))
+        while event_incs:
+            ((child_edge, _, _, _), ) = event_incs
+            ((_, child_node, _, _), ) = hif_edge_incidences(node, child_edge, "tail", key="start")
+            self.emit_node(node, index, child_node)
+            if child_node == end_event_node:
+                break
+            event_incs = tuple(hif_node_incidences(node, child_node))
+
+        # assert event_node == end_event_edge
+
     def emit_document(self, node, parent, index):
+        # TODO
         self.emit("DocumentStartEvent", node, parent, index)
-        for e in hif_node_edges(node, index):
-            for n in hif_edge_nodes(node, e, "tail"):
-                self.emit_node(node, index, n)
+        self.emit_between(node, parent, index)
         self.emit("DocumentEndEvent", node, parent, index)
 
     def emit_stream(self, node, parent, index):
+        # start and end have different edge IDs
         self.emit("StreamStartEvent", node, parent, index)
-        for e in hif_node_edges(node, index):
-            for n in hif_edge_nodes(node, e, "tail"):
-                self.emit_node(node, index, n)
+        self.emit_between(node, parent, index)
         self.emit("StreamEndEvent", node, parent, index)
 
     def generate_anchor(self, node):
@@ -160,20 +176,12 @@ class NxSerializer:
 
     def emit_sequence(self, node, parent, index):
         self.emit("SequenceStartEvent", node, parent, index)
-        # TODO this assumes an ordering in the edges
-        for e in hif_node_edges(node, index):
-            (n, ) = hif_edge_nodes(node, e, "tail")
-            self.emit_node(node, index, n)
+        self.emit_between(node, parent, index)
         self.emit("SequenceEndEvent", node, parent, index)
 
     def emit_mapping(self, node, parent, index):
         self.emit("MappingStartEvent", node, parent, index)
-        # TODO this assumes an ordering in the edges
-        for e0, e1 in batched(hif_node_edges(node, index), 2):
-            (n0, ) = hif_edge_nodes(node, e0, "tail")
-            (n1, ) = hif_edge_nodes(node, e1, "tail")
-            self.emit_node(node, index, n0)
-            self.emit_node(node, index, n1)
+        self.emit_between(node, parent, index)
         self.emit("MappingEndEvent", node, parent, index)
 
     # TODO remove unnecessary queue

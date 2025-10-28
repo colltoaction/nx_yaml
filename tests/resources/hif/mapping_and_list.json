@@ -1,38 +1,31 @@
 {
     "incidences": [
-        {"node": 0, "edge": 1, "direction": "tail"},
-        {"node": 0, "edge": 19, "direction": "tail"},
+        {"node": 0, "edge": 1, "direction": "tail", "attrs": {"key": "start"}},
+        {"node": 0, "edge": 3, "direction": "tail", "attrs": {"key": "end"}},
         {"node": 0, "edge": 3},
-        {"node": 2, "edge": 3, "direction": "tail"},
-        {"node": 2, "edge": 18, "direction": "tail"},
+
+        {"node": 2, "edge": 3, "direction": "tail", "attrs": {"key": "start"}},
+        {"node": 2, "edge": 5, "direction": "tail", "attrs": {"key": "end"}},
         {"node": 2, "edge": 5},
-        {"node": 4, "edge": 5, "direction": "tail"},
-        {"node": 4, "edge": 17, "direction": "tail"},
+
+        {"node": 4, "edge": 5, "direction": "tail", "attrs": {"key": "start"}},
+        {"node": 4, "edge": 13, "direction": "tail", "attrs": {"key": "end"}},
         {"node": 4, "edge": 7},
-        {"node": 4, "edge": 9},
-        {"node": 4, "edge": 11},
-        {"node": 4, "edge": 13},
-        {"node": 6, "edge": 7, "direction": "tail"},
-        {"node": 8, "edge": 9, "direction": "tail"},
-        {"node": 10, "edge": 11, "direction": "tail"},
-        {"node": 12, "edge": 13, "direction": "tail"},
-        {"node": 12, "edge": 16, "direction": "tail"},
+
+        {"node": 6, "edge": 7, "direction": "tail", "attrs": {"key": "start"}},
+        {"node": 6, "edge": 9},
+
+        {"node": 8, "edge": 9, "direction": "tail", "attrs": {"key": "start"}},
+        {"node": 8, "edge": 11},
+
+        {"node": 10, "edge": 11, "direction": "tail", "attrs": {"key": "start"}},
+        {"node": 10, "edge": 13},
+
+        {"node": 12, "edge": 13, "direction": "tail", "attrs": {"key": "start"}},
+        {"node": 12, "edge": 15, "direction": "tail", "attrs": {"key": "end"}},
         {"node": 12, "edge": 15},
-        {"node": 14, "edge": 15, "direction": "tail"}
-    ],
-    "edges": [
-        {"edge": 1, "attrs": {"kind": "event", "tag": "StreamStartEvent"}},
-        {"edge": 3, "attrs": {"kind": "event", "tag": "DocumentStartEvent"}},
-        {"edge": 5, "attrs": {"kind": "event", "tag": "MappingStartEvent"}},
-        {"edge": 7, "attrs": {"kind": "event", "tag": "ScalarEvent"}},
-        {"edge": 9, "attrs": {"kind": "event", "tag": "ScalarEvent"}},
-        {"edge": 11, "attrs": {"kind": "event", "tag": "ScalarEvent"}},
-        {"edge": 13, "attrs": {"kind": "event", "tag": "SequenceStartEvent"}},
-        {"edge": 15, "attrs": {"kind": "event", "tag": "ScalarEvent"}},
-        {"edge": 16, "attrs": {"kind": "event", "tag": "SequenceEndEvent"}},
-        {"edge": 17, "attrs": {"kind": "event", "tag": "MappingEndEvent"}},
-        {"edge": 18, "attrs": {"kind": "event", "tag": "DocumentEndEvent"}},
-        {"edge": 19, "attrs": {"kind": "event", "tag": "StreamEndEvent"}}
+
+        {"node": 14, "edge": 15, "direction": "tail", "attrs": {"key": "start"}}
     ],
     "nodes": [
         {"node": 0, "attrs": {"kind": "stream"}},
