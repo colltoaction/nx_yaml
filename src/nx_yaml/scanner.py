@@ -2009,8 +2009,7 @@ class NxScanner:
         stream_node = 0
         stream_edge = 1
         hif_add_node(node, stream_node, kind="stream")
-        hif_add_edge(node, stream_edge, kind="event")
-        hif_add_incidence(node, stream_edge, stream_node, direction="tail", key="start")
+        hif_add_incidence(node, stream_edge, stream_node, key="start")
 
         prev_node = stream_node
         prev_edge = stream_edge
@@ -2024,7 +2023,8 @@ class NxScanner:
 
         # Drop the STREAM-END event.
         _ = self.get_event()
-        hif_add_incidence(node, prev_edge, stream_node, "tail", key="end")
+        stream_end_edge = hif_number_of_all(node)
+        hif_add_incidence(node, stream_end_edge, stream_node, key="end")
 
         self.anchors = {}
         return node

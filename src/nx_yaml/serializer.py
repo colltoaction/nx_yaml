@@ -113,21 +113,27 @@ class NxSerializer:
 
     def emit_between(self, node, parent, index):
         # the event hyperedges preserve order (start->k0->v0->k1->v1->...->end)
-        (start_event_inc, ) = hif_node_incidences(node, index, "tail", key="start")
-        event_node = index
-        ((end_event_edge, _, _, _), ) = hif_node_incidences(node, index, "tail", key="end")
-        ((_, end_event_node, _, _), ) = hif_edge_incidences(node, end_event_edge, "tail", key="start")
-        # 0 or 1
-        event_incs = tuple(hif_node_incidences(node, index))
-        while event_incs:
-            ((child_edge, _, _, _), ) = event_incs
-            ((_, child_node, _, _), ) = hif_edge_incidences(node, child_edge, "tail", key="start")
-            self.emit_node(node, index, child_node)
-            if child_node == end_event_node:
+        ((end_event_edge, _, _, _), ) = hif_node_incidences(node, index, key="end")
+        # TODO check loop preserves event order
+        child_node = index
+        while True:
+            # TODO after the first break we get the same child_node
+            print(f"event_incs = tuple(hif_node_incidences(node, {child_node})")
+            event_incs = tuple(hif_node_incidences(node, child_node, key="next"))
+            print(f"{event_incs}")
+            if not event_incs:
                 break
-            event_incs = tuple(hif_node_incidences(node, child_node))
+            ((child_edge, _, _, _), ) = event_incs
+            print(f"hif_edge_incidences(node, {child_edge}, tail, start))")
+            ((_, child_node, _, _), ) = hif_edge_incidences(node, child_edge, key="start")
+            print(f"self.emit_node(node, {index}, {child_node})")
+            self.emit_node(node, index, child_node)
+            if child_edge == end_event_edge:
+                print("break 2:", child_node, end_event_edge)
+                break
 
-        # assert event_node == end_event_edge
+            print(f"continue: {child_node}")
+        print()
 
     def emit_document(self, node, parent, index):
         # TODO
