@@ -113,32 +113,38 @@ class NxSerializer:
 
     def emit_between(self, node, parent, index):
         # the event hyperedges preserve order (start->k0->v0->k1->v1->...->end)
-        ((end_event_edge, _, _, _), ) = hif_node_incidences(node, index, key="end")
+        ((start_edge, _, _, _), ) = hif_node_incidences(node, index, key="start")
+        ((end_edge, _, _, _), ) = hif_node_incidences(node, index, key="end")
+        print(f"self.emit_between_edges(node, {index}, {start_edge}, {end_edge})")
+        self.emit_between_edges(node, index, start_edge, end_edge)
+
+    def emit_between_edges(self, node, index, start_edge, end_edge):
         # TODO check loop preserves event order
-        child_node = index
-        while True:
-            # TODO after the first break we get the same child_node
-            print(f"event_incs = tuple(hif_node_incidences(node, {child_node})")
-            event_incs = tuple(hif_node_incidences(node, child_node, key="next"))
-            print(f"{event_incs}")
-            if not event_incs:
+        nxt = tuple(hif_node_incidences(node, index, key="next"))
+        while nxt:
+            ((fwd_edge, _, _, _), ) = nxt
+            if fwd_edge == end_edge:
+                print("break fwd_edge == end_edge:", tuple(nxt))
                 break
-            ((child_edge, _, _, _), ) = event_incs
-            print(f"hif_edge_incidences(node, {child_edge}, tail, start))")
-            ((_, child_node, _, _), ) = hif_edge_incidences(node, child_edge, key="start")
+
+            ((next_edge, _, _, _), ) = hif_node_incidences(node, index, key="next")
+            print(f"hif_edge_incidences(node, {fwd_edge}, start))")
+            ((_, child_node, _, _), ) = hif_edge_incidences(node, fwd_edge, key="start")
             print(f"self.emit_node(node, {index}, {child_node})")
             self.emit_node(node, index, child_node)
-            if child_edge == end_event_edge:
-                print("break 2:", child_node, end_event_edge)
-                break
 
-            print(f"continue: {child_node}")
+            nxt = tuple(hif_node_incidences(node, child_node, key="forward"))
+            print(f"nxt: {child_node}, {tuple(nxt)}")
+            if not nxt:
+                break
         print()
+        
 
     def emit_document(self, node, parent, index):
-        # TODO
         self.emit("DocumentStartEvent", node, parent, index)
+        # print("DocumentStartEvent:", index)
         self.emit_between(node, parent, index)
+        # print("DocumentEndEvent:", index)
         self.emit("DocumentEndEvent", node, parent, index)
 
     def emit_stream(self, node, parent, index):
@@ -178,6 +184,7 @@ class NxSerializer:
         self.emit("AliasEvent", node, parent, index)
 
     def emit_scalar(self, node, parent, index):
+        print("ScalarEvent:", index)
         self.emit("ScalarEvent", node, parent, index)
 
     def emit_sequence(self, node, parent, index):
