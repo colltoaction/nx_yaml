@@ -120,23 +120,26 @@ class NxSerializer:
 
     def emit_between_edges(self, node, index, start_edge, end_edge):
         # TODO check loop preserves event order
-        nxt = tuple(hif_node_incidences(node, index, key="next"))
-        while nxt:
-            ((fwd_edge, _, _, _), ) = nxt
-            if fwd_edge == end_edge:
-                print("break fwd_edge == end_edge:", tuple(nxt))
-                break
-
-            ((next_edge, _, _, _), ) = hif_node_incidences(node, index, key="next")
-            print(f"hif_edge_incidences(node, {fwd_edge}, start))")
-            ((_, child_node, _, _), ) = hif_edge_incidences(node, fwd_edge, key="start")
-            print(f"self.emit_node(node, {index}, {child_node})")
-            self.emit_node(node, index, child_node)
-
-            nxt = tuple(hif_node_incidences(node, child_node, key="forward"))
-            print(f"nxt: {child_node}, {tuple(nxt)}")
+        nxt_node = index
+        while True:
+            nxt = tuple(hif_node_incidences(node, nxt_node, key="next"))
             if not nxt:
                 break
+            ((nxt_edge, _, _, _), ) = nxt
+            ((_, nxt_node, _, _), ) = hif_edge_incidences(node, nxt_edge, key="start")
+            self.emit_node(node, index, nxt_node)
+
+            ((_, _, _, _), ) = hif_node_incidences(node, nxt_node, key="forward")
+            # fwd_incs = tuple(hif_node_incidences(node, nxt_node, key="forward"))
+            # if not fwd_incs:
+            #     break
+
+            # ((fwd_edge, _, _, _), ) = fwd_incs
+            # if end_edge == fwd_edge:
+            #     break
+
+            # nxt = tuple(hif_node_incidences(node, nxt_node, key="next"))
+
         print()
         
 

@@ -2017,19 +2017,20 @@ class NxScanner:
         while not self.peek_event()[0] == "StreamEndEvent":
             doc_node = hif_number_of_all(node)
             doc_edge = doc_node + 1
-            hif_add_incidence(node, doc_edge, prev_node, key="next")
-            hif_add_incidence(node, doc_edge, doc_node, key="start")
             self.compose_document(node, stream_node, doc_node)
+            hif_add_incidence(node, doc_edge, prev_node, key="next")
+            # hif_add_incidence(node, doc_edge, doc_node, key="start")
 
-            doc_end_edge = hif_number_of_all(node)
-            hif_add_incidence(node, doc_end_edge, doc_node, key="forward")
-            hif_add_incidence(node, doc_end_edge, doc_node, key="end")
+            # doc_forward_edge = hif_number_of_all(node)
+            # hif_add_incidence(node, doc_end_edge, doc_node, key="forward")
+            # hif_add_incidence(node, doc_end_edge, doc_node, key="end")
             prev_node = doc_node
             prev_edge = doc_edge
 
         # Drop the STREAM-END event.
         _ = self.get_event()
         stream_end_edge = hif_number_of_all(node)
+        hif_add_incidence(node, stream_end_edge, prev_node, key="forward")
         hif_add_incidence(node, stream_end_edge, stream_node, key="end")
 
         self.anchors = {}
@@ -2049,14 +2050,21 @@ class NxScanner:
         child_edge = child_node + 1
         hif_add_node(node, doc_node, kind="document")
         hif_add_edge(node, doc_edge, kind="event")
-        hif_add_incidence(node, doc_edge, child_node, key="next")
+        hif_add_incidence(node, doc_edge, doc_node, key="start")
+        # hif_add_edge(node, child_edge, kind="event")
+        
         self.compose_node(node, doc_node, child_node)
+        hif_add_incidence(node, child_edge, doc_node, key="next")
 
         if not self.peek_event()[0] == "DocumentEndEvent":
             raise ComposerError(None, None, f"expected DocumentEndEvent not {self.peek_event()[0]}")
 
         # Drop the DOCUMENT-END event.
         _ = self.get_event()
+        doc_end_edge = hif_number_of_all(node)
+        hif_add_edge(node, doc_end_edge, kind="event")
+        hif_add_incidence(node, doc_end_edge, child_node, key="forward")
+        hif_add_incidence(node, doc_end_edge, doc_node, key="end")
         self.anchors = {}
 
     def compose_node(self, node, parent, index):
