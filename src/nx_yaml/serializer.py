@@ -120,26 +120,21 @@ class NxSerializer:
 
     def emit_between_edges(self, node, index, start_edge, end_edge):
         # TODO check loop preserves event order
-        nxt_node = index
+        # prev_edge = end_edge
+        nxt = tuple(hif_node_incidences(node, index, key="next"))
         while True:
-            nxt = tuple(hif_node_incidences(node, nxt_node, key="next"))
             if not nxt:
                 break
             ((nxt_edge, _, _, _), ) = nxt
-            ((_, nxt_node, _, _), ) = hif_edge_incidences(node, nxt_edge, key="start")
+            starts = tuple(hif_edge_incidences(node, nxt_edge, key="start"))
+            if not starts:
+                break
+            ((_, nxt_node, _, _), ) = starts
             self.emit_node(node, index, nxt_node)
 
-            ((_, _, _, _), ) = hif_node_incidences(node, nxt_node, key="forward")
-            # fwd_incs = tuple(hif_node_incidences(node, nxt_node, key="forward"))
-            # if not fwd_incs:
-            #     break
+            nxt = tuple(hif_node_incidences(node, nxt_node, key="forward"))
 
-            # ((fwd_edge, _, _, _), ) = fwd_incs
-            # if end_edge == fwd_edge:
-            #     break
-
-            # nxt = tuple(hif_node_incidences(node, nxt_node, key="next"))
-
+        # assert end_edge == prev_edge
         print()
         
 

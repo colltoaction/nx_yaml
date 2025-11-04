@@ -18,10 +18,10 @@ def test_single_node():
     _test_representation_to_native(expected_yaml, expected_hif)
 
 
-# def test_two_node_mapping():
-#     expected_yaml = "tests/resources/yaml/two_node_mapping.yaml"
-#     expected_hif = "tests/resources/hif/two_node_mapping.json"
-#     _test_representation_to_native(expected_yaml, expected_hif)
+def test_two_node_mapping():
+    expected_yaml = "tests/resources/yaml/two_node_mapping.yaml"
+    expected_hif = "tests/resources/hif/two_node_mapping.json"
+    _test_representation_to_native(expected_yaml, expected_hif)
 
 
 # def test_two_node_list():

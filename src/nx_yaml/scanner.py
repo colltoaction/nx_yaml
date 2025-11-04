@@ -2179,13 +2179,13 @@ class NxScanner:
             key_node = hif_number_of_all(node)
             key_edge = key_node + 1
             self.compose_node(node, mapping_node, key_node)
-            hif_add_incidence(node, key_edge, prev_node)
+            hif_add_incidence(node, key_edge, prev_node, key="next")
 
             # value
             value_node = hif_number_of_all(node)
             value_edge = value_node + 1
             self.compose_node(node, mapping_node, value_node)
-            hif_add_incidence(node, value_edge, key_node)
+            hif_add_incidence(node, value_edge, key_node, key="forward")
             prev_node = value_node
             prev_edge = value_edge
 
