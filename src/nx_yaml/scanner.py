@@ -2018,20 +2018,16 @@ class NxScanner:
             doc_node = hif_number_of_all(node)
             doc_edge = doc_node + 1
             self.compose_document(node, stream_node, doc_node)
-            hif_add_incidence(node, doc_edge, prev_node, key="next")
-            # hif_add_incidence(node, doc_edge, doc_node, key="start")
-
-            # doc_forward_edge = hif_number_of_all(node)
-            # hif_add_incidence(node, doc_end_edge, doc_node, key="forward")
-            # hif_add_incidence(node, doc_end_edge, doc_node, key="end")
+            if prev_node == stream_node:
+                hif_add_incidence(node, doc_edge, prev_node, key="next")
+            else:
+                hif_add_incidence(node, doc_edge, prev_node, key="forward")
             prev_node = doc_node
             prev_edge = doc_edge
 
         # Drop the STREAM-END event.
         _ = self.get_event()
-        stream_end_edge = hif_number_of_all(node)
-        hif_add_incidence(node, stream_end_edge, prev_node, key="forward")
-        hif_add_incidence(node, stream_end_edge, stream_node, key="end")
+        hif_add_incidence(node, prev_edge, stream_node, key="end")
 
         self.anchors = {}
         return node
@@ -2061,10 +2057,7 @@ class NxScanner:
 
         # Drop the DOCUMENT-END event.
         _ = self.get_event()
-        doc_end_edge = hif_number_of_all(node)
-        hif_add_edge(node, doc_end_edge, kind="event")
-        hif_add_incidence(node, doc_end_edge, child_node, key="forward")
-        hif_add_incidence(node, doc_end_edge, doc_node, key="end")
+        hif_add_incidence(node, child_edge, doc_node, key="end")
         self.anchors = {}
 
     def compose_node(self, node, parent, index):
@@ -2141,7 +2134,10 @@ class NxScanner:
             value_node = hif_number_of_all(node)
             value_edge = value_node + 1
             self.compose_node(node, sequence_node, value_node)
-            hif_add_incidence(node, value_edge, prev_node)
+            if prev_node == sequence_node:
+                hif_add_incidence(node, value_edge, prev_node, key="next")
+            else:
+                hif_add_incidence(node, value_edge, prev_node, key="forward")
             prev_node = value_node
             prev_edge = value_edge
 
@@ -2179,7 +2175,10 @@ class NxScanner:
             key_node = hif_number_of_all(node)
             key_edge = key_node + 1
             self.compose_node(node, mapping_node, key_node)
-            hif_add_incidence(node, key_edge, prev_node, key="next")
+            if prev_node == mapping_node:
+                hif_add_incidence(node, key_edge, prev_node, key="next")
+            else:
+                hif_add_incidence(node, key_edge, prev_node, key="forward")
 
             # value
             value_node = hif_number_of_all(node)

@@ -1,27 +1,27 @@
 {
     "incidences": [
-        {"node": 0, "edge": 1, "direction": "tail", "attrs": {"key": "start"}},
-        {"node": 0, "edge": 7, "direction": "tail", "attrs": {"key": "end"}},
-        {"node": 0, "edge": 3},
+        {"node": 0, "edge": 1, "attrs": {"key": "start"}},
+        {"node": 0, "edge": 3, "attrs": {"key": "next"}},
+        {"node": 0, "edge": 7, "attrs": {"key": "end"}},
 
-        {"node": 2, "edge": 3, "direction": "tail", "attrs": {"key": "start"}},
-        {"node": 2, "edge": 5, "direction": "tail", "attrs": {"key": "end"}},
-        {"node": 2, "edge": 5},
-        
-        {"node": 4, "edge": 5, "direction": "tail", "attrs": {"key": "start"}},
-        {"node": 4, "edge": 7},
+        {"node": 2, "edge": 3, "attrs": {"key": "start"}},
+        {"node": 2, "edge": 5, "attrs": {"key": "next"}},
+        {"node": 2, "edge": 7, "attrs": {"key": "forward"}},
+        {"node": 2, "edge": 5, "attrs": {"key": "end"}},
 
-        {"node": 6, "edge": 7, "direction": "tail", "attrs": {"key": "start"}},
-        {"node": 6, "edge": 9, "direction": "tail", "attrs": {"key": "end"}},
-        {"node": 6, "edge": 9},
+        {"node": 4, "edge": 5, "attrs": {"key": "start"}},
 
-        {"node": 8, "edge": 9, "direction": "tail", "attrs": {"key": "start"}}
+        {"node": 6, "edge": 7, "attrs": {"key": "start"}},
+        {"node": 6, "edge": 8, "attrs": {"key": "next"}},
+        {"node": 6, "edge": 8, "attrs": {"key": "end"}},
+
+        {"node": 7, "edge": 8, "attrs": {"key": "start"}}
     ],
     "nodes": [
         {"node": 0, "attrs": {"kind": "stream"}},
         {"node": 2, "attrs": {"kind": "document"}},
         {"node": 4, "attrs": {"kind": "scalar", "value": "doc 1"}},
         {"node": 6, "attrs": {"kind": "document"}},
-        {"node": 8, "attrs": {"kind": "scalar", "value": "doc 2"}}
+        {"node": 7, "attrs": {"kind": "scalar", "value": "doc 2"}}
     ]
 }

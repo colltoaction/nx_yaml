@@ -1,8 +1,7 @@
 {
     "incidences": [
         {"node": 0, "edge": 1, "attrs": {"key": "start"}},
-        {"node": 0, "edge": 2, "attrs": {"key": "forward"}},
-        {"node": 0, "edge": 2, "attrs": {"key": "end"}}
+        {"node": 0, "edge": 1, "attrs": {"key": "end"}}
     ],
     "nodes": [
         {"node": 0, "attrs": {"kind": "stream"}}
