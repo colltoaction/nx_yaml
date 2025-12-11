@@ -568,6 +568,8 @@ class NxSerializer:
             implicit = node_get(self.event, "implicit")
             if implicit is None:
                 implicit = (True, True)
+            elif isinstance(implicit, bool):
+                implicit = (implicit, implicit)
             if ((not event_get(self.event, "canonical") or tag is None) and
                 ((self.style == '' and implicit[0])
                         or (self.style != '' and implicit[1]))):
@@ -599,6 +601,8 @@ class NxSerializer:
         implicit = node_get(self.event, "implicit")
         if implicit is None:
             implicit = (True, True)
+        elif isinstance(implicit, bool):
+            implicit = (implicit, implicit)
         if not node_get(self.event, "style") and implicit[0]:
             if (not (self.simple_key_context and
                     (self.analysis.empty or self.analysis.multiline))

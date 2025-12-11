@@ -1,8 +1,0 @@
-plain: plain value
-single-quoted: 'single quoted value'
-double-quoted: "double quoted value"
-literal: |
-  literal
-  value
-folded: >
-  folded value
