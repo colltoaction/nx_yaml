@@ -334,13 +334,13 @@ class NxSerializer:
             if self.event[0] == "ScalarEvent":
                 self.expect_scalar()
             elif self.event[0] == "SequenceStartEvent":
-                if self.flow_level or event_get(self.event, "canonical") or event_get(self.event, "flow_style")   \
+                if self.flow_level or event_get(self.event, "canonical") or node_get(self.event, "flow_style")   \
                         or self.check_empty_sequence():
                     self.expect_flow_sequence()
                 else:
                     self.expect_block_sequence()
             elif self.event[0] == "MappingStartEvent":
-                if self.flow_level or event_get(self.event, "canonical") or event_get(self.event, "flow_style")   \
+                if self.flow_level or event_get(self.event, "canonical") or node_get(self.event, "flow_style")   \
                         or self.check_empty_mapping():
                     self.expect_flow_mapping()
                 else:

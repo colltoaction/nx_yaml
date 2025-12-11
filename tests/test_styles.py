@@ -1,4 +1,4 @@
-
+import pytest
 from pathlib import Path
 import networkx as nx
 from nx_hif.hif import *
@@ -6,27 +6,20 @@ from nx_hif.readwrite import *
 
 from src.nx_yaml import nx_serialize_all, nx_compose_all
 
-def test_style_plain():
-    _test_style("style_plain")
-
-def test_style_single():
-    _test_style("style_single")
-
-def test_style_double():
-    _test_style("style_double")
-
-def test_style_literal():
-    _test_style("style_literal")
-
-def test_style_folded():
-    _test_style("style_folded")
-
-def test_nulls():
-    _test_style("nulls")
-
-def _test_style(name):
-    expected_yaml = f"tests/resources/yaml/{name}.yaml"
-    expected_hif = f"tests/resources/hif/{name}.json"
+@pytest.mark.parametrize("style_file", [
+    "style_plain",
+    "style_single",
+    "style_double",
+    "style_literal",
+    "style_folded",
+    "nulls",
+    "map_styles",
+    "seq_styles",
+    "indicators",
+])
+def test_styles(style_file):
+    expected_yaml = f"tests/resources/yaml/{style_file}.yaml"
+    expected_hif = f"tests/resources/hif/{style_file}.json"
     _test_representation_to_native(expected_yaml, expected_hif)
 
 def _test_representation_to_native(expected_yaml, expected_hif):
