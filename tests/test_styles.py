@@ -7,11 +7,7 @@ from nx_hif.readwrite import *
 from src.nx_yaml import nx_serialize_all, nx_compose_all
 
 @pytest.mark.parametrize("style_file", [
-    "style_plain",
-    "style_single",
-    "style_double",
-    "style_literal",
-    "style_folded",
+    "scalar_styles",
     "nulls",
     "map_styles",
     "seq_styles",
