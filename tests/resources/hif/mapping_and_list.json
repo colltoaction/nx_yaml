@@ -1,40 +1,349 @@
 {
-    "incidences": [
-        {"node": 0, "edge": 1, "attrs": {"key": "start"}},
-        {"node": 0, "edge": 3, "attrs": {"key": "next"}},
-        {"node": 0, "edge": 3, "attrs": {"key": "end"}},
-
-        {"node": 2, "edge": 3, "attrs": {"key": "start"}},
-        {"node": 2, "edge": 5, "attrs": {"key": "next"}},
-        {"node": 2, "edge": 5, "attrs": {"key": "end"}},
-
-        {"node": 4, "edge": 5, "attrs": {"key": "start"}},
-        {"node": 4, "edge": 7, "attrs": {"key": "next"}},
-        {"node": 4, "edge": 13, "attrs": {"key": "end"}},
-
-        {"node": 6, "edge": 7, "attrs": {"key": "start"}},
-        {"node": 6, "edge": 9, "attrs": {"key": "forward"}},
-        
-        {"node": 8, "edge": 9, "attrs": {"key": "start"}},
-        {"node": 8, "edge": 11, "attrs": {"key": "forward"}},
-
-        {"node": 10, "edge": 11, "attrs": {"key": "start"}},
-        {"node": 10, "edge": 13, "attrs": {"key": "forward"}},
-
-        {"node": 12, "edge": 13, "attrs": {"key": "start"}},
-        {"node": 12, "edge": 15, "attrs": {"key": "next"}},
-        {"node": 12, "edge": 15, "attrs": {"key": "end"}},
-
-        {"node": 14, "edge": 15, "attrs": {"key": "start"}}
-    ],
-    "nodes": [
-        {"node": 0, "attrs": {"kind": "stream"}},
-        {"node": 2, "attrs": {"kind": "document"}},
-        {"node": 4, "attrs": {"kind": "mapping"}},
-        {"node": 6, "attrs": {"kind": "scalar", "value": "first"}},
-        {"node": 8, "attrs": {"kind": "scalar", "value": ""}},
-        {"node": 10, "attrs": {"kind": "scalar", "value": "second"}},
-        {"node": 12, "attrs": {"kind": "sequence"}},
-        {"node": 14, "attrs": {"kind": "scalar", "value": "third"}}
-    ]
+  "incidences": [
+    {
+      "edge": 1,
+      "node": 0,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 2,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 0,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 0,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 4,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 2,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 2,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 7,
+      "node": 6,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 7,
+      "node": 4,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 9,
+      "node": 8,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 9,
+      "node": 6,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 11,
+      "node": 10,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 11,
+      "node": 8,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 13,
+      "node": 12,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 13,
+      "node": 10,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 13,
+      "node": 4,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 15,
+      "node": 14,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 15,
+      "node": 12,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 15,
+      "node": 12,
+      "attrs": {
+        "key": "end"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge": 1,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 3,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 5,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 7,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 9,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 11,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 13,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 15,
+      "attrs": {
+        "kind": "event"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "node": 0,
+      "attrs": {
+        "kind": "stream"
+      }
+    },
+    {
+      "node": 2,
+      "attrs": {
+        "kind": "document"
+      }
+    },
+    {
+      "node": 4,
+      "attrs": {
+        "implicit": true,
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": "",
+        "start_mark_line": "",
+        "start_mark_column": "",
+        "start_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "start_mark_pointer": "",
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": "",
+        "end_mark_line": "",
+        "end_mark_column": "",
+        "end_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "end_mark_pointer": "",
+        "flow_style": "",
+        "kind": "mapping",
+        "tag": "",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 6,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": "",
+        "start_mark_line": "",
+        "start_mark_column": "",
+        "start_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "start_mark_pointer": "",
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 7,
+        "end_mark_line": "",
+        "end_mark_column": 7,
+        "end_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "end_mark_pointer": 7,
+        "style": "'",
+        "kind": "scalar",
+        "tag": "",
+        "value": "first",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 8,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 9,
+        "start_mark_line": "",
+        "start_mark_column": 9,
+        "start_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "start_mark_pointer": 9,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 11,
+        "end_mark_line": "",
+        "end_mark_column": 11,
+        "end_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "end_mark_pointer": 11,
+        "style": "'",
+        "kind": "scalar",
+        "tag": "",
+        "value": "",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 10,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 12,
+        "start_mark_line": 1,
+        "start_mark_column": "",
+        "start_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "start_mark_pointer": 12,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 20,
+        "end_mark_line": 1,
+        "end_mark_column": 8,
+        "end_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "end_mark_pointer": 20,
+        "style": "'",
+        "kind": "scalar",
+        "tag": "",
+        "value": "second",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 12,
+      "attrs": {
+        "implicit": true,
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 22,
+        "start_mark_line": 2,
+        "start_mark_column": "",
+        "start_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "start_mark_pointer": 22,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 23,
+        "end_mark_line": 2,
+        "end_mark_column": 1,
+        "end_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "end_mark_pointer": 23,
+        "flow_style": "",
+        "kind": "sequence",
+        "tag": "",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 14,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 24,
+        "start_mark_line": 2,
+        "start_mark_column": 2,
+        "start_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "start_mark_pointer": 24,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 31,
+        "end_mark_line": 2,
+        "end_mark_column": 9,
+        "end_mark_buffer": "'first': ''\n'second':\n- 'third'\n\u0000",
+        "end_mark_pointer": 31,
+        "style": "'",
+        "kind": "scalar",
+        "tag": "",
+        "value": "third",
+        "anchor": ""
+      }
+    }
+  ]
 }

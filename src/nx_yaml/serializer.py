@@ -522,8 +522,11 @@ class NxSerializer:
         if not self.event[0] == "DocumentStartEvent" or not self.events:
             return False
         event = self.events[0]
-        return (event[0] == "ScalarEvent" and event_get(event, "anchor") is None
-                and node_get(event, "tag") is None and event_get(event, "implicit") and node_get(event, "value") == '')
+        implicit = node_get(event, "implicit")
+        if implicit is None:
+            implicit = (True, True)
+        return (event[0] == "ScalarEvent" and node_get(event, "anchor") is None
+                and node_get(event, "tag") is None and implicit and node_get(event, "value") == '')
 
     def check_simple_key(self):
         length = 0
@@ -562,16 +565,22 @@ class NxSerializer:
         if self.event[0] == "ScalarEvent":
             if self.style is None:
                 self.style = self.choose_scalar_style()
+            implicit = node_get(self.event, "implicit")
+            if implicit is None:
+                implicit = (True, True)
             if ((not event_get(self.event, "canonical") or tag is None) and
-                ((self.style == '' and event_get(self.event, "implicit[0]"))
-                        or (self.style != '' and event_get(self.event, "implicit[1]")))):
+                ((self.style == '' and implicit[0])
+                        or (self.style != '' and implicit[1]))):
                 self.prepared_tag = None
                 return
-            if event_get(self.event, "implicit[0]") and tag is None:
+            if implicit[0] and tag is None:
                 tag = '!'
                 self.prepared_tag = None
         else:
-            if (not event_get(self.event, "canonical") or tag is None) and event_get(self.event, "implicit"):
+            implicit = node_get(self.event, "implicit")
+            if implicit is None:
+                implicit = True
+            if (not event_get(self.event, "canonical") or tag is None) and implicit:
                 self.prepared_tag = None
                 return
         # if tag is None:
@@ -585,19 +594,22 @@ class NxSerializer:
     def choose_scalar_style(self):
         if self.analysis is None:
             self.analysis = self.analyze_scalar(node_get(self.event, "value") or "")
-        if event_get(self.event, "style") == '"' or event_get(self.event, "canonical"):
+        if node_get(self.event, "style") == '"' or event_get(self.event, "canonical"):
             return '"'
-        if not event_get(self.event, "style") and event_get(self.event, "implicit[0]"):
+        implicit = node_get(self.event, "implicit")
+        if implicit is None:
+            implicit = (True, True)
+        if not node_get(self.event, "style") and implicit[0]:
             if (not (self.simple_key_context and
                     (self.analysis.empty or self.analysis.multiline))
                 and (self.flow_level and self.analysis.allow_flow_plain
                     or (not self.flow_level and self.analysis.allow_block_plain))):
                 return ''
-        if event_get(self.event, "style") and event_get(self.event, "style") in '|>':
+        if node_get(self.event, "style") and node_get(self.event, "style") in '|>':
             if (not self.flow_level and not self.simple_key_context
                     and self.analysis.allow_block):
-                return event_get(self.event, "style")
-        if not event_get(self.event, "style") or event_get(self.event, "style") == '\'':
+                return node_get(self.event, "style")
+        if not node_get(self.event, "style") or node_get(self.event, "style") == '\'':
             if (self.analysis.allow_single_quoted and
                     not (self.simple_key_context and self.analysis.multiline)):
                 return '\''

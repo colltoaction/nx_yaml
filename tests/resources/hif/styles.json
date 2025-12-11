@@ -1,0 +1,576 @@
+{
+  "incidences": [
+    {
+      "edge": 1,
+      "node": 0,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 2,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 0,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 0,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 4,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 2,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 2,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 7,
+      "node": 6,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 7,
+      "node": 4,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 9,
+      "node": 8,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 9,
+      "node": 6,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 11,
+      "node": 10,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 11,
+      "node": 8,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 13,
+      "node": 12,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 13,
+      "node": 10,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 15,
+      "node": 14,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 15,
+      "node": 12,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 17,
+      "node": 16,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 17,
+      "node": 14,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 19,
+      "node": 18,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 19,
+      "node": 16,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 21,
+      "node": 20,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 21,
+      "node": 18,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 23,
+      "node": 22,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 23,
+      "node": 20,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 25,
+      "node": 24,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 25,
+      "node": 22,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 25,
+      "node": 4,
+      "attrs": {
+        "key": "end"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge": 1,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 3,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 5,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 7,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 9,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 11,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 13,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 15,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 17,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 19,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 21,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 23,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 25,
+      "attrs": {
+        "kind": "event"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "node": 0,
+      "attrs": {
+        "kind": "stream"
+      }
+    },
+    {
+      "node": 2,
+      "attrs": {
+        "kind": "document"
+      }
+    },
+    {
+      "node": 4,
+      "attrs": {
+        "implicit": true,
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": "",
+        "start_mark_line": "",
+        "start_mark_column": "",
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": "",
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": "",
+        "end_mark_line": "",
+        "end_mark_column": "",
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": "",
+        "flow_style": "",
+        "kind": "mapping",
+        "tag": "",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 6,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": "",
+        "start_mark_line": "",
+        "start_mark_column": "",
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": "",
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 5,
+        "end_mark_line": "",
+        "end_mark_column": 5,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 5,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "plain",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 8,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 7,
+        "start_mark_line": "",
+        "start_mark_column": 7,
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 7,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 18,
+        "end_mark_line": "",
+        "end_mark_column": 18,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 18,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "plain value",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 10,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 19,
+        "start_mark_line": 1,
+        "start_mark_column": "",
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 19,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 32,
+        "end_mark_line": 1,
+        "end_mark_column": 13,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 32,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "single-quoted",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 12,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 34,
+        "start_mark_line": 1,
+        "start_mark_column": 15,
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 34,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 55,
+        "end_mark_line": 1,
+        "end_mark_column": 36,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 55,
+        "style": "'",
+        "kind": "scalar",
+        "tag": "",
+        "value": "single quoted value",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 14,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 56,
+        "start_mark_line": 2,
+        "start_mark_column": "",
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 56,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 69,
+        "end_mark_line": 2,
+        "end_mark_column": 13,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 69,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "double-quoted",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 16,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 71,
+        "start_mark_line": 2,
+        "start_mark_column": 15,
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 71,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 92,
+        "end_mark_line": 2,
+        "end_mark_column": 36,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 92,
+        "style": "\"",
+        "kind": "scalar",
+        "tag": "",
+        "value": "double quoted value",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 18,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 93,
+        "start_mark_line": 3,
+        "start_mark_column": "",
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 93,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 100,
+        "end_mark_line": 3,
+        "end_mark_column": 7,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 100,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "literal",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 20,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 102,
+        "start_mark_line": 3,
+        "start_mark_column": 9,
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 102,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 122,
+        "end_mark_line": 6,
+        "end_mark_column": "",
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 122,
+        "style": "|",
+        "kind": "scalar",
+        "tag": "",
+        "value": "literal\nvalue\n",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 22,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 122,
+        "start_mark_line": 6,
+        "start_mark_column": "",
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 122,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 128,
+        "end_mark_line": 6,
+        "end_mark_column": 6,
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 128,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "folded",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 24,
+      "attrs": {
+        "implicit": [
+          false,
+          true
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 130,
+        "start_mark_line": 6,
+        "start_mark_column": 8,
+        "start_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "start_mark_pointer": 130,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 147,
+        "end_mark_line": 8,
+        "end_mark_column": "",
+        "end_mark_buffer": "plain: plain value\nsingle-quoted: 'single quoted value'\ndouble-quoted: \"double quoted value\"\nliteral: |\n  literal\n  value\nfolded: >\n  folded value\n\u0000",
+        "end_mark_pointer": 147,
+        "style": ">",
+        "kind": "scalar",
+        "tag": "",
+        "value": "folded value\n",
+        "anchor": ""
+      }
+    }
+  ]
+}
