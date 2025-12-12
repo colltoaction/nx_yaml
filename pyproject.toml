@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nx_yaml"
-version = "0.2.0"
+version = "0.4.0"
 description = "nx_yaml is a general purpose YAML implementation as hypergraphs using nx_hif. It provides native semantics for higher-order applications such as Hypergraph Analysis, Quantum Computing, Geometric Deep Learning and Monoidal Computing"
 readme = "README.md"
 dependencies = [
   "pyyaml",
-  "nx_hif==0.0.9",
+  "nx_hif==0.0.10",
 ]
 
 [project.urls]
