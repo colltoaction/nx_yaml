@@ -1,0 +1,4 @@
+block_seq:
+- item1
+- item2
+flow_seq: [item1, item2]

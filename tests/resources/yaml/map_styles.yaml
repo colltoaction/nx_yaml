@@ -1,0 +1,3 @@
+block_map:
+  key: value
+flow_map: {key: value}

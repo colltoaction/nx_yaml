@@ -14,7 +14,7 @@
 
         {"node": 6, "edge": 7, "attrs": {"key": "start"}},
         {"node": 6, "edge": 9, "attrs": {"key": "forward"}},
-        
+
         {"node": 8, "edge": 9, "attrs": {"key": "start"}},
         {"node": 8, "edge": 11, "attrs": {"key": "forward"}},
 
