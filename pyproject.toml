@@ -9,7 +9,7 @@ description = "nx_yaml is a general purpose YAML implementation as hypergraphs u
 readme = "README.md"
 dependencies = [
   "pyyaml",
-  "nx_hif==0.0.9",
+  "nx_hif==0.0.10",
 ]
 
 [project.urls]

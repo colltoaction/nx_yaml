@@ -94,6 +94,15 @@ from yaml.parser import ParserError
 from yaml.scanner import SimpleKey, ScannerError
 
 
+def hif_new_node(G: HyperGraph):
+    V, _, _ = G
+    return V.number_of_nodes()
+
+def hif_new_edge(G: HyperGraph):
+    _, E, _ = G
+    return E.number_of_nodes()
+
+
 class NxScanner:
 
     DEFAULT_TAGS = {
@@ -385,7 +394,7 @@ class NxScanner:
         # Remove the saved possible key position at the current flow level.
         if self.flow_level in self.possible_simple_keys:
             key = self.possible_simple_keys[self.flow_level]
-            
+
             if key.required:
                 raise ScannerError("while scanning a simple key", key.mark,
                         "could not find expected ':'", self.get_mark())
@@ -434,11 +443,11 @@ class NxScanner:
 
         # Read the token.
         mark = self.get_mark()
-        
+
         # Add STREAM-START.
         self.tokens.append(('<stream start>', mark, mark,
             self.encoding))
-        
+
 
     def fetch_stream_end(self):
 
@@ -452,7 +461,7 @@ class NxScanner:
 
         # Read the token.
         mark = self.get_mark()
-        
+
         # Add STREAM-END.
         self.tokens.append(('<stream end>', mark, mark))
 
@@ -460,7 +469,7 @@ class NxScanner:
         self.done = True
 
     def fetch_directive(self):
-        
+
         # Set the current indentation to -1.
         self.unwind_indent(-1)
 
@@ -587,7 +596,7 @@ class NxScanner:
         self.tokens.append(("-", start_mark, end_mark))
 
     def fetch_key(self):
-        
+
         # Block context needs additional checks.
         if not self.flow_level:
 
@@ -637,7 +646,7 @@ class NxScanner:
 
         # It must be a part of a complex key.
         else:
-            
+
             # Block context needs additional checks.
             # (Do we really need them? They will be caught by the parser
             # anyway.)
@@ -1089,14 +1098,14 @@ class NxScanner:
                 # Unfortunately, folding rules are ambiguous.
                 #
                 # This is the folding according to the specification:
-                
+
                 if folded and line_break == '\n'    \
                         and leading_non_space and self.peek() not in ' \t':
                     if not breaks:
                         chunks.append(' ')
                 else:
                     chunks.append(line_break)
-                
+
                 # This is Clark Evans's interpretation (also in the spec
                 # examples):
                 #
@@ -1894,7 +1903,7 @@ class NxScanner:
                     token = self.peek_token()
                     raise ParserError("while parsing a flow sequence", self.marks[-1],
                             "expected ',' or ']', but got %r" % token[0], token[1])
-            
+
             if self.check_token('?'):
                 token = self.peek_token()
                 event = ("MappingStartEvent", token[1], token[2], "", "", False, '')
@@ -2006,8 +2015,8 @@ class NxScanner:
         # Drop the STREAM-START event.
         _ = self.get_event()
         node = hif_create()
-        stream_node = 0
-        stream_edge = 1
+        stream_node = hif_new_node(node)
+        stream_edge = hif_new_edge(node)
         hif_add_node(node, stream_node, kind="stream")
         hif_add_edge(node, stream_edge, kind="event")
         hif_add_incidence(node, stream_edge, stream_node, key="start")
@@ -2015,9 +2024,7 @@ class NxScanner:
         prev_node = stream_node
         prev_edge = stream_edge
         while not self.peek_event()[0] == "StreamEndEvent":
-            doc_node = hif_number_of_all(node)
-            doc_edge = doc_node + 1
-            self.compose_document(node, stream_node, doc_node)
+            doc_node, doc_edge = self.compose_document(node, stream_node)
             if prev_node == stream_node:
                 hif_add_incidence(node, doc_edge, prev_node, key="next")
             else:
@@ -2032,7 +2039,7 @@ class NxScanner:
         self.anchors = {}
         return node
 
-    def compose_document(self, node, parent, index):
+    def compose_document(self, node, parent):
         if not self.peek_event()[0] == "DocumentStartEvent":
             raise ComposerError(None, None, f"expected DocumentStartEvent not {self.peek_event()[0]}")
 
@@ -2040,16 +2047,14 @@ class NxScanner:
         _ = self.get_event()
 
         # Compose the root node.
-        doc_node = index
-        doc_edge = doc_node + 1
-        child_node = index + 2
-        child_edge = child_node + 1
+        doc_node = hif_new_node(node)
         hif_add_node(node, doc_node, kind="document")
+        doc_edge = hif_new_edge(node)
         hif_add_edge(node, doc_edge, kind="event")
         hif_add_incidence(node, doc_edge, doc_node, key="start")
         # hif_add_edge(node, child_edge, kind="event")
-        
-        self.compose_node(node, doc_node, child_node)
+
+        child_node, child_edge = self.compose_node(node, doc_node)
         hif_add_incidence(node, child_edge, doc_node, key="next")
 
         if not self.peek_event()[0] == "DocumentEndEvent":
@@ -2059,54 +2064,59 @@ class NxScanner:
         _ = self.get_event()
         hif_add_incidence(node, child_edge, doc_node, key="end")
         self.anchors = {}
+        return doc_node, doc_edge
 
-    def compose_node(self, node, parent, index):
+    def compose_node(self, node, parent):
         if self.peek_event()[0] == "AliasEvent":
-            self.compose_alias_node(node, parent, index)
+            return self.compose_alias_node(node, parent)
         elif self.peek_event()[0] == "ScalarEvent":
-            self.compose_scalar_node(node, parent, index)
+            return self.compose_scalar_node(node, parent)
         elif self.peek_event()[0] == "SequenceStartEvent":
-            self.compose_sequence_node(node, parent, index)
+            return self.compose_sequence_node(node, parent)
         elif self.peek_event()[0] == "MappingStartEvent":
-            self.compose_mapping_node(node, parent, index)
+            return self.compose_mapping_node(node, parent)
         else:
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
 
-    def compose_alias_node(self, node, parent, index):
+    def compose_alias_node(self, node, parent):
         if not self.peek_event()[0] == "AliasEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         event = self.get_event()
         (start_event_name, start_mark, end_mark, anchor) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
+
+        index = hif_new_node(node)
         hif_add_node(node, index,
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 kind="alias", anchor=anchor or "")
-        event_edge = index+1
+        event_edge = hif_new_edge(node)
         hif_add_edge(node, event_edge, kind="event")
         hif_add_incidence(node, event_edge, index, key="start")
-        return node
+        return index, event_edge
 
-    def compose_scalar_node(self, node, parent, index):
+    def compose_scalar_node(self, node, parent):
         if not self.peek_event()[0] == "ScalarEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         event = self.get_event()
         (start_event_name, start_mark, end_mark, anchor, tag, implicit, style, value) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
+
+        index = hif_new_node(node)
         hif_add_node(node, index,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 style=style or "",
                 kind="scalar", tag=tag or "", value=value or "", anchor=anchor or "")
-        event_edge = index+1
+        event_edge = hif_new_edge(node)
         hif_add_edge(node, event_edge, kind="event")
         hif_add_incidence(node, event_edge, index, key="start")
-        return node
+        return index, event_edge
 
-    def compose_sequence_node(self, node, parent, index):
+    def compose_sequence_node(self, node, parent):
         if not self.peek_event()[0] == "SequenceStartEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         # Drop the SEQUENCE-START event.
@@ -2115,14 +2125,14 @@ class NxScanner:
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
 
-        sequence_node = index
-        sequence_edge = index + 1
-        hif_add_node(node, index,
+        sequence_node = hif_new_node(node)
+        hif_add_node(node, sequence_node,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="sequence", tag=tag or "", anchor=anchor or "")
+        sequence_edge = hif_new_edge(node)
         hif_add_edge(node, sequence_edge, kind="event")
         hif_add_incidence(node, sequence_edge, sequence_node, key="start")
 
@@ -2131,9 +2141,7 @@ class NxScanner:
         # a linked list of events (start->v0->v1->...->end)
         while not self.peek_event()[0] == "SequenceEndEvent":
             # value
-            value_node = hif_number_of_all(node)
-            value_edge = value_node + 1
-            self.compose_node(node, sequence_node, value_node)
+            value_node, value_edge = self.compose_node(node, sequence_node)
             if prev_node == sequence_node:
                 hif_add_incidence(node, value_edge, prev_node, key="next")
             else:
@@ -2145,9 +2153,9 @@ class NxScanner:
         _ = self.get_event()
         hif_add_incidence(node, prev_edge, sequence_node, key="end")
 
-        return node
+        return sequence_node, sequence_edge
 
-    def compose_mapping_node(self, node, parent, index):
+    def compose_mapping_node(self, node, parent):
         if not self.peek_event()[0] == "MappingStartEvent":
             raise ComposerError(None, None, f"unexpected event {self.peek_event()[0]}")
         # Drop the MAPPING-START event.
@@ -2156,14 +2164,14 @@ class NxScanner:
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
 
-        mapping_node = index
-        mapping_edge = index + 1
-        hif_add_node(node, index,
+        mapping_node = hif_new_node(node)
+        hif_add_node(node, mapping_node,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="mapping", tag=tag or "", anchor=anchor or "")
+        mapping_edge = hif_new_edge(node)
         hif_add_edge(node, mapping_edge, kind="event")
         hif_add_incidence(node, mapping_edge, mapping_node, key="start")
 
@@ -2172,18 +2180,14 @@ class NxScanner:
         # a linked list of events (start->k0->v0->k1->v1->...->end)
         while not self.peek_event()[0] == "MappingEndEvent":
             # key
-            key_node = hif_number_of_all(node)
-            key_edge = key_node + 1
-            self.compose_node(node, mapping_node, key_node)
+            key_node, key_edge = self.compose_node(node, mapping_node)
             if prev_node == mapping_node:
                 hif_add_incidence(node, key_edge, prev_node, key="next")
             else:
                 hif_add_incidence(node, key_edge, prev_node, key="forward")
 
             # value
-            value_node = hif_number_of_all(node)
-            value_edge = value_node + 1
-            self.compose_node(node, mapping_node, value_node)
+            value_node, value_edge = self.compose_node(node, mapping_node)
             hif_add_incidence(node, value_edge, key_node, key="forward")
             prev_node = value_node
             prev_edge = value_edge
@@ -2192,4 +2196,4 @@ class NxScanner:
         _ = self.get_event()
         hif_add_incidence(node, prev_edge, mapping_node, key="end")
 
-        return node
+        return mapping_node, mapping_edge
