@@ -94,13 +94,17 @@ from yaml.parser import ParserError
 from yaml.scanner import SimpleKey, ScannerError
 
 
-def hif_new_node(G: HyperGraph):
-    V, _, _ = G
-    return V.number_of_nodes()
-
-def hif_new_edge(G: HyperGraph):
+def hif_new_edge(G: HyperGraph, **attr):
     _, E, _ = G
-    return E.number_of_nodes()
+    edge = E.number_of_nodes()
+    hif_add_edge(G, edge, **attr)
+    return edge
+
+def hif_new_node(G: HyperGraph, **attr):
+    V, _, _ = G
+    node = V.number_of_nodes()
+    hif_add_node(G, node, **attr)
+    return node
 
 
 class NxScanner:
@@ -2015,10 +2019,8 @@ class NxScanner:
         # Drop the STREAM-START event.
         _ = self.get_event()
         node = hif_create()
-        stream_node = hif_new_node(node)
-        stream_edge = hif_new_edge(node)
-        hif_add_node(node, stream_node, kind="stream")
-        hif_add_edge(node, stream_edge, kind="event")
+        stream_node = hif_new_node(node, kind="stream")
+        stream_edge = hif_new_edge(node, kind="event")
         hif_add_incidence(node, stream_edge, stream_node, key="start")
 
         prev_node = stream_node
@@ -2047,10 +2049,8 @@ class NxScanner:
         _ = self.get_event()
 
         # Compose the root node.
-        doc_node = hif_new_node(node)
-        hif_add_node(node, doc_node, kind="document")
-        doc_edge = hif_new_edge(node)
-        hif_add_edge(node, doc_edge, kind="event")
+        doc_node = hif_new_node(node, kind="document")
+        doc_edge = hif_new_edge(node, kind="event")
         hif_add_incidence(node, doc_edge, doc_node, key="start")
         # hif_add_edge(node, child_edge, kind="event")
 
@@ -2086,13 +2086,11 @@ class NxScanner:
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
 
-        index = hif_new_node(node)
-        hif_add_node(node, index,
+        index = hif_new_node(node,
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 kind="alias", anchor=anchor or "")
-        event_edge = hif_new_edge(node)
-        hif_add_edge(node, event_edge, kind="event")
+        event_edge = hif_new_edge(node, kind="event")
         hif_add_incidence(node, event_edge, index, key="start")
         return index, event_edge
 
@@ -2104,15 +2102,13 @@ class NxScanner:
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
 
-        index = hif_new_node(node)
-        hif_add_node(node, index,
+        index = hif_new_node(node,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 style=style or "",
                 kind="scalar", tag=tag or "", value=value or "", anchor=anchor or "")
-        event_edge = hif_new_edge(node)
-        hif_add_edge(node, event_edge, kind="event")
+        event_edge = hif_new_edge(node, kind="event")
         hif_add_incidence(node, event_edge, index, key="start")
         return index, event_edge
 
@@ -2125,15 +2121,13 @@ class NxScanner:
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
 
-        sequence_node = hif_new_node(node)
-        hif_add_node(node, sequence_node,
+        sequence_node = hif_new_node(node,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="sequence", tag=tag or "", anchor=anchor or "")
-        sequence_edge = hif_new_edge(node)
-        hif_add_edge(node, sequence_edge, kind="event")
+        sequence_edge = hif_new_edge(node, kind="event")
         hif_add_incidence(node, sequence_edge, sequence_node, key="start")
 
         prev_node = sequence_node
@@ -2164,15 +2158,13 @@ class NxScanner:
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
 
-        mapping_node = hif_new_node(node)
-        hif_add_node(node, mapping_node,
+        mapping_node = hif_new_node(node,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
                 flow_style=flow_style or "",
                 kind="mapping", tag=tag or "", anchor=anchor or "")
-        mapping_edge = hif_new_edge(node)
-        hif_add_edge(node, mapping_edge, kind="event")
+        mapping_edge = hif_new_edge(node, kind="event")
         hif_add_incidence(node, mapping_edge, mapping_node, key="start")
 
         prev_node = mapping_node
