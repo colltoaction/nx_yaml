@@ -873,7 +873,7 @@ class NxScanner:
             while self.peek() not in '\0\r\n\x85\u2028\u2029':
                 self.forward()
         self.scan_directive_ignored_line(start_mark)
-        return DirectiveToken(name, value, start_mark, end_mark)
+        return ('<directive>', start_mark, end_mark, name, value)
 
     def scan_directive_name(self, start_mark):
         # See the specification for details.
@@ -1635,18 +1635,18 @@ class NxScanner:
         self.tag_handles = {}
         while self.check_token('<directive>'):
             token = self.get_token()
-            if token.name == 'YAML':
+            if token[3] == 'YAML':
                 if self.yaml_version is not None:
                     raise ParserError(None, None,
                             "found duplicate YAML directive", token[1])
-                major, minor = token[2]
+                major, minor = token[4]
                 if major != 1:
                     raise ParserError(None, None,
                             "found incompatible YAML document (version 1.* is required)",
                             token[1])
-                self.yaml_version = token[2]
-            elif token.name == 'TAG':
-                handle, prefix = token[2]
+                self.yaml_version = token[4]
+            elif token[3] == 'TAG':
+                handle, prefix = token[4]
                 if handle in self.tag_handles:
                     raise ParserError(None, None,
                             "duplicate tag handle %r" % handle,
