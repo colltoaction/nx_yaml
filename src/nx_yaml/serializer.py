@@ -1245,7 +1245,8 @@ class NxSerializer:
             end += 1
 
 def event_get(event, p):
-    return hif_edge(event[1], event[3]+1).get(p)
+    ((start_edge, _, _, _), ) = hif_node_incidences(event[1], event[3], key="start")
+    return hif_edge(event[1], start_edge).get(p)
 
 def node_get(event, p):
     return hif_node(event[1], event[3]).get(p)
