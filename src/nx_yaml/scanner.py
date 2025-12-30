@@ -1764,7 +1764,6 @@ class NxScanner:
                     end_mark = self.peek_token()[1]
                     event = ("MappingStartEvent", start_mark, end_mark, anchor, tag, implicit, False)
                     self.state = self.parse_block_mapping_first_key
-                # TODO this check wasn't here
                 # elif self.check_token('<stream end>'):
                 #     pass
                 elif anchor is not None or tag is not None:
@@ -2004,9 +2003,7 @@ class NxScanner:
             raise ComposerError(None, None, f"expected StreamStartEvent not {self.peek_event()[0]}")
 
         # Drop the STREAM-START event.
-        event = self.get_event()
-        # event: (name, start_mark, end_mark, encoding)
-        encoding = event[3]
+        (name, start_mark, end_mark, encoding) = self.get_event()
 
         node = hif_create()
         stream_node = hif_new_node(node, kind="stream")
@@ -2037,8 +2034,7 @@ class NxScanner:
 
         # Drop the DOCUMENT-START event.
         event = self.get_event()
-        # event: (name, start_mark, end_mark, explicit, version?, tags?)
-        explicit = event[3]
+        (name, start_mark, end_mark, explicit) = event[:4]
         version = None
         tags = None
         if len(event) > 4:
@@ -2058,33 +2054,7 @@ class NxScanner:
             raise ComposerError(None, None, f"expected DocumentEndEvent not {self.peek_event()[0]}")
 
         # Drop the DOCUMENT-END event.
-        event = self.get_event()
-        # event: (name, start_mark, end_mark, explicit)
-        explicit = event[3]
-        # TODO: Store end event properties on an edge? But child_edge is already created.
-        # hif_add_incidence(node, child_edge, doc_node, key="end") uses child_edge.
-        # The serializer uses event_get on the "start" edge of the document for start properties.
-        # For end properties, it calls emit_document -> emit("DocumentEndEvent", ...).
-        # emit uses event_get. If it's DocumentEndEvent, event_get will look up the start edge of the document node?
-        # No, emit uses index (doc_node id).
-        # NxSerializer.expect_document_end uses event_get(self.event, "explicit").
-        # If event_get returns properties of doc_edge (start edge), then explicit needs to be there?
-        # But DocumentStart has explicit start, DocumentEnd has explicit end. They can differ.
-        # NxSerializer logic is:
-        # event_get uses hif_node_incidences(..., key="start").
-        # So it always gets the START edge.
-        # This implies NxSerializer cannot distinguish start and end properties if they are different but accessed via the same node.
-        # Unless we change NxSerializer to look for "end" edge for End events?
-        # But emit("DocumentEndEvent", node, ...) passes the same node index.
-        # Let's check serializer.
-
-        # In expect_document_end:
-        # if event_get(self.event, "explicit"): ...
-        # This will read "explicit" from the START edge of the document.
-        # This seems to be a limitation of the current serializer implementation if start/end explicit differ.
-        # However, for now, let's just proceed. The crash fix is the priority.
-
-        _ = event # consumed
+        (name, start_mark, end_mark, explicit) = self.get_event()
 
         hif_add_incidence(node, child_edge, doc_node, key="end")
         self.anchors = {}

@@ -115,7 +115,6 @@ class NxSerializer:
         # the event hyperedges preserve order (start->k0->v0->k1->v1->...->end)
         ((start_edge, _, _, _), ) = hif_node_incidences(node, index, key="start")
         ((end_edge, _, _, _), ) = hif_node_incidences(node, index, key="end")
-        print(f"self.emit_between_edges(node, {index}, {start_edge}, {end_edge})")
         self.emit_between_edges(node, index, start_edge, end_edge)
 
     def emit_between_edges(self, node, index, start_edge, end_edge):
@@ -135,14 +134,11 @@ class NxSerializer:
             nxt = tuple(hif_node_incidences(node, nxt_node, key="forward"))
 
         # assert end_edge == prev_edge
-        print()
         
 
     def emit_document(self, node, parent, index):
         self.emit("DocumentStartEvent", node, parent, index)
-        # print("DocumentStartEvent:", index)
         self.emit_between(node, parent, index)
-        # print("DocumentEndEvent:", index)
         self.emit("DocumentEndEvent", node, parent, index)
 
     def emit_stream(self, node, parent, index):
@@ -182,7 +178,6 @@ class NxSerializer:
         self.emit("AliasEvent", node, parent, index)
 
     def emit_scalar(self, node, parent, index):
-        print("ScalarEvent:", index)
         self.emit("ScalarEvent", node, parent, index)
 
     def emit_sequence(self, node, parent, index):
@@ -1245,22 +1240,8 @@ class NxSerializer:
             end += 1
 
 def event_get(event, p):
-    # Retrieve the start edge connected to the node (event[3])
-    # instead of assuming edge_id = node_id + 1
-    # event is (name, node_graph, parent, node_id)
-    # Using hif_node_incidences to find the edge with key="start"
-
-    # We need to import hif_node_incidences if it is not available in scope,
-    # but it is imported via `from nx_hif.hif import *` at the top.
-
-    # We iterate over incidences to find the one with key="start"
-    # hif_node_incidences yields (edge, node, key, other_attrs)
-
-    starts = tuple(hif_node_incidences(event[1], event[3], key="start"))
-    if starts:
-        edge_id = starts[0][0]
-        return hif_edge(event[1], edge_id).get(p)
-    return None
+    ((start_edge, _, _, _), ) = hif_node_incidences(event[1], event[3], key="start")
+    return hif_edge(event[1], start_edge).get(p)
 
 def node_get(event, p):
     return hif_node(event[1], event[3]).get(p)

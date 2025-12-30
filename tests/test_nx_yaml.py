@@ -29,11 +29,6 @@ def _test_representation_to_native(expected_yaml, expected_hif):
     original_graph = read_hif(expected_hif)
     og = {frozenset(ee) for ee in original_graph[2].edges}
     cg = {frozenset(ee) for ee in composed_graph[2].edges}
-    # print(og)
-    # print(cg)
-    # print(*og.difference(cg), sep="\n")
-    # print()
-    # print(*cg.difference(og), sep="\n")
     serialized_string = nx_serialize_all(original_graph)
 
     # Normalizing potential newline differences if needed, but keeping simple for now
