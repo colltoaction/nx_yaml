@@ -1,0 +1,476 @@
+{
+  "incidences": [
+    {
+      "edge": 0,
+      "node": 0,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 1,
+      "node": 1,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 1,
+      "node": 0,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 2,
+      "node": 2,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 2,
+      "node": 1,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 2,
+      "node": 1,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 3,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 3,
+      "node": 2,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 4,
+      "node": 4,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 4,
+      "node": 3,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 4,
+      "node": 2,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 5,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 5,
+      "node": 1,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 6,
+      "node": 6,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 6,
+      "node": 5,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 6,
+      "node": 5,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 7,
+      "node": 7,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 7,
+      "node": 5,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 7,
+      "node": 0,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 8,
+      "node": 8,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 8,
+      "node": 7,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 8,
+      "node": 7,
+      "attrs": {
+        "key": "end"
+      }
+    },
+    {
+      "edge": 9,
+      "node": 9,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 9,
+      "node": 8,
+      "attrs": {
+        "key": "next"
+      }
+    },
+    {
+      "edge": 10,
+      "node": 10,
+      "attrs": {
+        "key": "start"
+      }
+    },
+    {
+      "edge": 10,
+      "node": 9,
+      "attrs": {
+        "key": "forward"
+      }
+    },
+    {
+      "edge": 10,
+      "node": 8,
+      "attrs": {
+        "key": "end"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge": 0,
+      "attrs": {
+        "kind": "event",
+        "encoding": null
+      }
+    },
+    {
+      "edge": 1,
+      "attrs": {
+        "kind": "event",
+        "explicit": true,
+        "version": [
+          1,
+          2
+        ],
+        "tags": null
+      }
+    },
+    {
+      "edge": 2,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 3,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 4,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 5,
+      "attrs": {
+        "kind": "event",
+        "explicit": true,
+        "version": null,
+        "tags": {
+          "!yaml!": "tag:yaml.org,2002:"
+        }
+      }
+    },
+    {
+      "edge": 6,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 7,
+      "attrs": {
+        "kind": "event",
+        "explicit": true,
+        "version": null,
+        "tags": null
+      }
+    },
+    {
+      "edge": 8,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 9,
+      "attrs": {
+        "kind": "event"
+      }
+    },
+    {
+      "edge": 10,
+      "attrs": {
+        "kind": "event"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "node": 0,
+      "attrs": {
+        "kind": "stream"
+      }
+    },
+    {
+      "node": 1,
+      "attrs": {
+        "kind": "document"
+      }
+    },
+    {
+      "node": 2,
+      "attrs": {
+        "implicit": true,
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 14,
+        "start_mark_line": 2,
+        "start_mark_column": "",
+        "start_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "start_mark_pointer": 14,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 14,
+        "end_mark_line": 2,
+        "end_mark_column": "",
+        "end_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "end_mark_pointer": 14,
+        "flow_style": "",
+        "kind": "mapping",
+        "tag": "",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 3,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 14,
+        "start_mark_line": 2,
+        "start_mark_column": "",
+        "start_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "start_mark_pointer": 14,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 17,
+        "end_mark_line": 2,
+        "end_mark_column": 3,
+        "end_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "end_mark_pointer": 17,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "doc",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 4,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 19,
+        "start_mark_line": 2,
+        "start_mark_column": 5,
+        "start_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "start_mark_pointer": 19,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 20,
+        "end_mark_line": 2,
+        "end_mark_column": 6,
+        "end_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "end_mark_pointer": 20,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "1",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 5,
+      "attrs": {
+        "kind": "document"
+      }
+    },
+    {
+      "node": 6,
+      "attrs": {
+        "implicit": [
+          false,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 60,
+        "start_mark_line": 5,
+        "start_mark_column": 4,
+        "start_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "start_mark_pointer": 60,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 75,
+        "end_mark_line": 5,
+        "end_mark_column": 19,
+        "end_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "end_mark_pointer": 75,
+        "style": "\"",
+        "kind": "scalar",
+        "tag": "tag:yaml.org,2002:str",
+        "value": "foo",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 7,
+      "attrs": {
+        "kind": "document"
+      }
+    },
+    {
+      "node": 8,
+      "attrs": {
+        "implicit": true,
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 84,
+        "start_mark_line": 8,
+        "start_mark_column": "",
+        "start_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "start_mark_pointer": 84,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 84,
+        "end_mark_line": 8,
+        "end_mark_column": "",
+        "end_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "end_mark_pointer": 84,
+        "flow_style": "",
+        "kind": "mapping",
+        "tag": "",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 9,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 84,
+        "start_mark_line": 8,
+        "start_mark_column": "",
+        "start_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "start_mark_pointer": 84,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 87,
+        "end_mark_line": 8,
+        "end_mark_column": 3,
+        "end_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "end_mark_pointer": 87,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "doc",
+        "anchor": ""
+      }
+    },
+    {
+      "node": 10,
+      "attrs": {
+        "implicit": [
+          true,
+          false
+        ],
+        "start_mark_name": "<unicode string>",
+        "start_mark_index": 89,
+        "start_mark_line": 8,
+        "start_mark_column": 5,
+        "start_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "start_mark_pointer": 89,
+        "end_mark_name": "<unicode string>",
+        "end_mark_index": 90,
+        "end_mark_line": 8,
+        "end_mark_column": 6,
+        "end_mark_buffer": "%YAML 1.2\n---\ndoc: 1\n...\n%TAG !yaml! tag:yaml.org,2002:\n--- !yaml!str \"foo\"\n...\n---\ndoc: 3\n...\n\u0000",
+        "end_mark_pointer": 90,
+        "style": "",
+        "kind": "scalar",
+        "tag": "",
+        "value": "3",
+        "anchor": ""
+      }
+    }
+  ]
+}

@@ -385,7 +385,7 @@ class NxScanner:
         # Remove the saved possible key position at the current flow level.
         if self.flow_level in self.possible_simple_keys:
             key = self.possible_simple_keys[self.flow_level]
-            
+
             if key.required:
                 raise ScannerError("while scanning a simple key", key.mark,
                         "could not find expected ':'", self.get_mark())
@@ -434,11 +434,11 @@ class NxScanner:
 
         # Read the token.
         mark = self.get_mark()
-        
+
         # Add STREAM-START.
         self.tokens.append(('<stream start>', mark, mark,
             self.encoding))
-        
+
 
     def fetch_stream_end(self):
 
@@ -452,7 +452,7 @@ class NxScanner:
 
         # Read the token.
         mark = self.get_mark()
-        
+
         # Add STREAM-END.
         self.tokens.append(('<stream end>', mark, mark))
 
@@ -460,7 +460,7 @@ class NxScanner:
         self.done = True
 
     def fetch_directive(self):
-        
+
         # Set the current indentation to -1.
         self.unwind_indent(-1)
 
@@ -587,7 +587,7 @@ class NxScanner:
         self.tokens.append(("-", start_mark, end_mark))
 
     def fetch_key(self):
-        
+
         # Block context needs additional checks.
         if not self.flow_level:
 
@@ -637,7 +637,7 @@ class NxScanner:
 
         # It must be a part of a complex key.
         else:
-            
+
             # Block context needs additional checks.
             # (Do we really need them? They will be caught by the parser
             # anyway.)
@@ -873,7 +873,7 @@ class NxScanner:
             while self.peek() not in '\0\r\n\x85\u2028\u2029':
                 self.forward()
         self.scan_directive_ignored_line(start_mark)
-        return DirectiveToken(name, value, start_mark, end_mark)
+        return ('<directive>', start_mark, end_mark, name, value)
 
     def scan_directive_name(self, start_mark):
         # See the specification for details.
@@ -1089,14 +1089,14 @@ class NxScanner:
                 # Unfortunately, folding rules are ambiguous.
                 #
                 # This is the folding according to the specification:
-                
+
                 if folded and line_break == '\n'    \
                         and leading_non_space and self.peek() not in ' \t':
                     if not breaks:
                         chunks.append(' ')
                 else:
                     chunks.append(line_break)
-                
+
                 # This is Clark Evans's interpretation (also in the spec
                 # examples):
                 #
@@ -1635,18 +1635,18 @@ class NxScanner:
         self.tag_handles = {}
         while self.check_token('<directive>'):
             token = self.get_token()
-            if token.name == 'YAML':
+            if token[3] == 'YAML':
                 if self.yaml_version is not None:
                     raise ParserError(None, None,
                             "found duplicate YAML directive", token[1])
-                major, minor = token[2]
+                major, minor = token[4]
                 if major != 1:
                     raise ParserError(None, None,
                             "found incompatible YAML document (version 1.* is required)",
                             token[1])
-                self.yaml_version = token[2]
-            elif token.name == 'TAG':
-                handle, prefix = token[2]
+                self.yaml_version = token[4]
+            elif token[3] == 'TAG':
+                handle, prefix = token[4]
                 if handle in self.tag_handles:
                     raise ParserError(None, None,
                             "duplicate tag handle %r" % handle,
@@ -1894,7 +1894,7 @@ class NxScanner:
                     token = self.peek_token()
                     raise ParserError("while parsing a flow sequence", self.marks[-1],
                             "expected ',' or ']', but got %r" % token[0], token[1])
-            
+
             if self.check_token('?'):
                 token = self.peek_token()
                 event = ("MappingStartEvent", token[1], token[2], "", "", False, '')
@@ -2004,10 +2004,13 @@ class NxScanner:
             raise ComposerError(None, None, f"expected StreamStartEvent not {self.peek_event()[0]}")
 
         # Drop the STREAM-START event.
-        _ = self.get_event()
+        event = self.get_event()
+        # event: (name, start_mark, end_mark, encoding)
+        encoding = event[3]
+
         node = hif_create()
         stream_node = hif_new_node(node, kind="stream")
-        stream_edge = hif_new_edge(node, kind="event")
+        stream_edge = hif_new_edge(node, kind="event", encoding=encoding)
         hif_add_incidence(node, stream_edge, stream_node, key="start")
 
         prev_node = stream_node
@@ -2033,14 +2036,21 @@ class NxScanner:
             raise ComposerError(None, None, f"expected DocumentStartEvent not {self.peek_event()[0]}")
 
         # Drop the DOCUMENT-START event.
-        _ = self.get_event()
+        event = self.get_event()
+        # event: (name, start_mark, end_mark, explicit, version?, tags?)
+        explicit = event[3]
+        version = None
+        tags = None
+        if len(event) > 4:
+            version = event[4]
+            tags = event[5]
 
         # Compose the root node.
         doc_node = hif_new_node(node, kind="document")
-        doc_edge = hif_new_edge(node, kind="event")
+        doc_edge = hif_new_edge(node, kind="event", explicit=explicit, version=version, tags=tags)
         hif_add_incidence(node, doc_edge, doc_node, key="start")
         # hif_add_edge(node, child_edge, kind="event")
-        
+
         child_node, child_edge = self.compose_node(node)
         hif_add_incidence(node, child_edge, doc_node, key="next")
 
@@ -2048,7 +2058,34 @@ class NxScanner:
             raise ComposerError(None, None, f"expected DocumentEndEvent not {self.peek_event()[0]}")
 
         # Drop the DOCUMENT-END event.
-        _ = self.get_event()
+        event = self.get_event()
+        # event: (name, start_mark, end_mark, explicit)
+        explicit = event[3]
+        # TODO: Store end event properties on an edge? But child_edge is already created.
+        # hif_add_incidence(node, child_edge, doc_node, key="end") uses child_edge.
+        # The serializer uses event_get on the "start" edge of the document for start properties.
+        # For end properties, it calls emit_document -> emit("DocumentEndEvent", ...).
+        # emit uses event_get. If it's DocumentEndEvent, event_get will look up the start edge of the document node?
+        # No, emit uses index (doc_node id).
+        # NxSerializer.expect_document_end uses event_get(self.event, "explicit").
+        # If event_get returns properties of doc_edge (start edge), then explicit needs to be there?
+        # But DocumentStart has explicit start, DocumentEnd has explicit end. They can differ.
+        # NxSerializer logic is:
+        # event_get uses hif_node_incidences(..., key="start").
+        # So it always gets the START edge.
+        # This implies NxSerializer cannot distinguish start and end properties if they are different but accessed via the same node.
+        # Unless we change NxSerializer to look for "end" edge for End events?
+        # But emit("DocumentEndEvent", node, ...) passes the same node index.
+        # Let's check serializer.
+
+        # In expect_document_end:
+        # if event_get(self.event, "explicit"): ...
+        # This will read "explicit" from the START edge of the document.
+        # This seems to be a limitation of the current serializer implementation if start/end explicit differ.
+        # However, for now, let's just proceed. The crash fix is the priority.
+
+        _ = event # consumed
+
         hif_add_incidence(node, child_edge, doc_node, key="end")
         self.anchors = {}
         return doc_node, doc_edge
@@ -2072,7 +2109,7 @@ class NxScanner:
         (start_event_name, start_mark, end_mark, anchor) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        
+
         index = hif_new_node(node,
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",
                 end_mark_name=end_mark_name or "", end_mark_index=end_mark_index or "", end_mark_line=end_mark_line or "", end_mark_column=end_mark_column or "", end_mark_buffer=end_mark_buffer or "", end_mark_pointer=end_mark_pointer or "",
@@ -2088,7 +2125,7 @@ class NxScanner:
         (start_event_name, start_mark, end_mark, anchor, tag, implicit, style, value) = event
         (start_mark_name, start_mark_index, start_mark_line, start_mark_column, start_mark_buffer, start_mark_pointer) = (start_mark.name, start_mark.index, start_mark.line, start_mark.column, start_mark.buffer, start_mark.pointer)
         (end_mark_name, end_mark_index, end_mark_line, end_mark_column, end_mark_buffer, end_mark_pointer) = (end_mark.name, end_mark.index, end_mark.line, end_mark.column, end_mark.buffer, end_mark.pointer)
-        
+
         index = hif_new_node(node,
                 implicit=implicit or "",
                 start_mark_name=start_mark_name or "", start_mark_index=start_mark_index or "", start_mark_line=start_mark_line or "", start_mark_column=start_mark_column or "", start_mark_buffer=start_mark_buffer or "", start_mark_pointer=start_mark_pointer or "",

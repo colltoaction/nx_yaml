@@ -1245,7 +1245,22 @@ class NxSerializer:
             end += 1
 
 def event_get(event, p):
-    return hif_edge(event[1], event[3]+1).get(p)
+    # Retrieve the start edge connected to the node (event[3])
+    # instead of assuming edge_id = node_id + 1
+    # event is (name, node_graph, parent, node_id)
+    # Using hif_node_incidences to find the edge with key="start"
+
+    # We need to import hif_node_incidences if it is not available in scope,
+    # but it is imported via `from nx_hif.hif import *` at the top.
+
+    # We iterate over incidences to find the one with key="start"
+    # hif_node_incidences yields (edge, node, key, other_attrs)
+
+    starts = tuple(hif_node_incidences(event[1], event[3], key="start"))
+    if starts:
+        edge_id = starts[0][0]
+        return hif_edge(event[1], edge_id).get(p)
+    return None
 
 def node_get(event, p):
     return hif_node(event[1], event[3]).get(p)

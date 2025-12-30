@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+doc: 1
+...
+%TAG !yaml! tag:yaml.org,2002:
+--- !yaml!str "foo"
+...
+---
+doc: 3
+...
